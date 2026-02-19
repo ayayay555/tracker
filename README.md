@@ -22,7 +22,7 @@ A PWA (Progressive Web App) to track your money across **GCash, GoTyme, Maribank
 
 1. Push this repo to GitHub
 2. Go to repo **Settings → Pages**
-3. Set Source: **Deploy from branch → main → / (root)**
+3. Set Source: **Deploy from branch → master → / (root)**
 4. Click **Save** — your URL will be: `https://YOUR_USERNAME.github.io/tracker/`
 
 ## Local Development
