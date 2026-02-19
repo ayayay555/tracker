@@ -1,15 +1,14 @@
-const CACHE_NAME = 'fintrack-v1';
+const CACHE_NAME = 'fintrack-v2';
 const ASSETS = [
-    "./",
-    "index.html",
-    "style.css",
-    "app.js",
-    "manifest.json",
-    "icons/icon-192.svg",
-    "icons/icon-512.svg"
+    './',
+    'index.html',
+    'style.css',
+    'app.js',
+    'manifest.json',
+    'icons/icon-192.svg',
+    'icons/icon-512.svg'
 ];
 
-// Install — cache all assets
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
@@ -18,7 +17,6 @@ self.addEventListener('install', event => {
     );
 });
 
-// Activate — clean old caches
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys =>
@@ -27,20 +25,27 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch — cache-first strategy
 self.addEventListener('fetch', event => {
+    // For navigation requests, try to serve index.html from cache
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                return caches.match('index.html') || caches.match('./');
+            })
+        );
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request)
             .then(cached => cached || fetch(event.request)
                 .then(response => {
-                    // Cache successful GET responses
                     if (event.request.method === 'GET' && response.status === 200) {
                         const clone = response.clone();
                         caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
                     }
                     return response;
                 })
-                .catch(() => caches.match('index.html'))
             )
     );
 });
