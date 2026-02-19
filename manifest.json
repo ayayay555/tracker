@@ -1,9 +1,9 @@
 {
-    "name": "FinTrack",
-    "short_name": "FinTrack",
+    "name": "Track",
+    "short_name": "Track",
     "description": "Track your money across GCash, GoTyme, Maribank, and Landbank.",
-    "start_url": "/",
-    "scope": "/",
+    "start_url": "index.html",
+    "scope": "./",
     "display": "standalone",
     "orientation": "portrait",
     "background_color": "#0F172A",

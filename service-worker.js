@@ -1,12 +1,12 @@
 const CACHE_NAME = 'fintrack-v1';
 const ASSETS = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/app.js',
-    '/manifest.json',
-    '/icons/icon-192.svg',
-    '/icons/icon-512.svg'
+    "./",
+    "index.html",
+    "style.css",
+    "app.js",
+    "manifest.json",
+    "icons/icon-192.svg",
+    "icons/icon-512.svg"
 ];
 
 // Install — cache all assets
@@ -40,7 +40,7 @@ self.addEventListener('fetch', event => {
                     }
                     return response;
                 })
-                .catch(() => caches.match('/index.html'))
+                .catch(() => caches.match('index.html'))
             )
     );
 });
