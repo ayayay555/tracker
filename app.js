@@ -239,8 +239,6 @@ if ('serviceWorker' in navigator) {
 
 // ── Swipe & Navigation ──────────────────────────────────────────────────────
 const sliderContainer = document.getElementById('sliderContainer');
-const toNotesBtn = document.getElementById('toNotesBtn');
-const toMainBtn = document.getElementById('toMainBtn');
 const notesArea = document.getElementById('notesArea');
 
 let touchStartX = 0;
@@ -253,10 +251,6 @@ function switchPage(page) {
         sliderContainer.classList.remove('show-notes');
     }
 }
-
-// Button nav
-toNotesBtn.addEventListener('click', () => switchPage('notes'));
-toMainBtn.addEventListener('click', () => switchPage('main'));
 
 // Robust Swipe detection
 sliderContainer.addEventListener('touchstart', e => {
