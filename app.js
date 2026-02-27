@@ -244,7 +244,7 @@ const toMainBtn = document.getElementById('toMainBtn');
 const notesArea = document.getElementById('notesArea');
 
 let touchStartX = 0;
-let touchEndX = 0;
+let touchStartY = 0;
 
 function switchPage(page) {
     if (page === 'notes') {
@@ -258,27 +258,32 @@ function switchPage(page) {
 toNotesBtn.addEventListener('click', () => switchPage('notes'));
 toMainBtn.addEventListener('click', () => switchPage('main'));
 
-// Swipe detection
+// Robust Swipe detection
 sliderContainer.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
 }, { passive: true });
 
 sliderContainer.addEventListener('touchend', e => {
-    touchEndX = e.changedTouches[0].screenX;
-    handleGesture();
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    handleGesture(touchEndX, touchEndY);
 }, { passive: true });
 
-function handleGesture() {
-    const diff = touchStartX - touchEndX;
-    const threshold = 70; // Swipe sensitivity
+function handleGesture(endX, endY) {
+    const diffX = touchStartX - endX;
+    const diffY = touchStartY - endY;
+    const threshold = 60; // Swipe sensitivity
 
-    // Swipe Left (Go to Notes)
-    if (diff > threshold) {
-        switchPage('notes');
-    }
-    // Swipe Right (Go to Main)
-    if (diff < -threshold) {
-        switchPage('main');
+    // Ensure it's more horizontal than vertical to avoid accidental triggers while scrolling
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (Math.abs(diffX) > threshold) {
+            if (diffX > 0) {
+                switchPage('notes');
+            } else {
+                switchPage('main');
+            }
+        }
     }
 }
 
