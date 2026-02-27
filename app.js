@@ -237,5 +237,63 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+// ── Swipe & Navigation ──────────────────────────────────────────────────────
+const sliderContainer = document.getElementById('sliderContainer');
+const toNotesBtn = document.getElementById('toNotesBtn');
+const toMainBtn = document.getElementById('toMainBtn');
+const notesArea = document.getElementById('notesArea');
+
+let touchStartX = 0;
+let touchEndX = 0;
+
+function switchPage(page) {
+    if (page === 'notes') {
+        sliderContainer.classList.add('show-notes');
+    } else {
+        sliderContainer.classList.remove('show-notes');
+    }
+}
+
+// Button nav
+toNotesBtn.addEventListener('click', () => switchPage('notes'));
+toMainBtn.addEventListener('click', () => switchPage('main'));
+
+// Swipe detection
+sliderContainer.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+
+sliderContainer.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleGesture();
+}, { passive: true });
+
+function handleGesture() {
+    const diff = touchStartX - touchEndX;
+    const threshold = 70; // Swipe sensitivity
+
+    // Swipe Left (Go to Notes)
+    if (diff > threshold) {
+        switchPage('notes');
+    }
+    // Swipe Right (Go to Main)
+    if (diff < -threshold) {
+        switchPage('main');
+    }
+}
+
+// ── Notes Logic ─────────────────────────────────────────────────────────────
+function loadNotes() {
+    const saved = localStorage.getItem('fintrack_notes');
+    if (saved) notesArea.value = saved;
+}
+
+function saveNotes() {
+    localStorage.setItem('fintrack_notes', notesArea.value);
+}
+
+notesArea.addEventListener('input', saveNotes);
+
 // ── Init ───────────────────────────────────────────────────────────────────
 renderBalances();
+loadNotes();
