@@ -1,36 +1,62 @@
-# FinTrack — Finance Tracker
+# FinTrack: Minimalistic Financial Tracker (PH Edition) 🇵🇭
 
-A PWA (Progressive Web App) to track your money across **GCash, GoTyme, Maribank, and Landbank**. Installable on Android directly from Chrome.
+A high-fidelity, minimalistic financial tracking application built with **Flutter**. Designed specifically for the Philippine market with support for top traditional and digital banks.
 
-## Features
-- 💰 Total balance with expandable bank breakdown
-- ⬇️ Deposit to any bank
-- ⬆️ Spend from any bank (with overdraft protection)
-- 📋 Transaction history with bank filter
-- 💾 Data saved locally on your device (localStorage)
-- 📴 Works offline after first load (Service Worker)
+---
 
-## How to Install on Android
+## ✨ Key Features
 
-1. Open the live URL in **Chrome on Android**
-2. Tap the **3-dot menu (⋮)** → **"Add to Home Screen"**
-3. Tap **"Install"** → the app appears on your home screen!
+- **📱 "Real App" Experience:** Smooth transitions and a professional-grade UI built using Material 3.
+- **🏦 PH Bank Integration:** Support for the top 20 traditional and digital banks (BDO, Maya, GCash, GoTyme, etc.).
+- **📊 Spending Analysis:** Dedicated stats view with a **Monthly Budget Progress Bar** and **Top Spending Breakdown**.
+- **💾 Local Persistence:** Your transaction data is saved locally on your device for fast, offline access.
+- **✨ Gestures:** **Swipe-to-Delete** for easy transaction management.
+- **🌙 Modern Dark Mode:** A sophisticated, high-end aesthetic inspired by the latest mobile design trends.
 
-## Deploy to GitHub Pages
+---
 
-> This gives you the live URL needed to install on Android.
+## 🚀 Getting Started
 
-1. Push this repo to GitHub
-2. Go to repo **Settings → Pages**
-3. Set Source: **Deploy from branch → master → / (root)**
-4. Click **Save** — your URL will be: `https://YOUR_USERNAME.github.io/tracker/`
+### Prerequisites
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (Stable channel)
+- Google Chrome (for Web testing)
 
-## Local Development
+### Installation
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/ayayay555/tracker.git
+    cd tracker
+    ```
+2.  **Install dependencies:**
+    ```bash
+    flutter pub get
+    ```
+3.  **Run the app:**
+    ```bash
+    flutter run -d chrome
+    ```
 
-```bash
-# Serve locally (required for service worker to work)
-npx serve .
-# Then open: http://localhost:3000
-```
+---
 
-> ⚠️ Open via localhost, not by double-clicking index.html — service workers need HTTP.
+## 🛠️ Built With
+- **Flutter:** For a high-performance, cross-platform UI.
+- **Shared Preferences:** For simple, local data persistence.
+- **GitHub Actions:** For automated deployment to GitHub Pages.
+
+---
+
+## 📈 Analysis & Insights
+FinTrack isn't just a log; it's an assistant. 
+- **Top Spends:** Instantly see where your money is going (Food, Bills, Transport).
+- **Budget Tracking:** Set a monthly goal and stay on track with a real-time progress bar.
+- **Bank Activity:** Monitor which bank account you use the most.
+
+---
+
+## 🛡️ Privacy
+FinTrack is built with **Privacy by Design**. All your transaction data stays **on your device**. No external servers, no tracking, no data sharing.
+
+---
+
+## 📄 License
+This project is open-source and available under the [MIT License](LICENSE).
