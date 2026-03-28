@@ -9,7 +9,11 @@ A high-fidelity, minimalistic financial tracking application built with **Flutte
 - **📱 Mobile Live Preview:** Experience the app in a realistic phone frame directly in your browser.
 - **🎯 Interactive Onboarding:** Personalize your experience by selecting only the banks and wallets you actually use.
 - **🏦 PH Bank Integration:** Deep support for top traditional and digital banks (BDO, Maya, GCash, GoTyme, etc.) + **Custom Bank** support.
-- **📊 Smart Analysis:** Stay on top of your finances with a **Monthly Budget Progress Bar** and automated categorical breakdowns.
+- **📊 Smart Analysis & Budgeting:** 
+  - **Configurable Budgets:** Set your total monthly goal and specific category limits.
+  - **Live Progress Bar:** Monitor your spending in real-time directly on the dashboard.
+- **📑 Bank-Specific Insights:** Tap any account to see its specific transaction history and balance.
+- **⚡ Streamlined Logging:** Fast entry for expenses and category-free logging for deposits.
 - **💾 Local Persistence:** Your data is yours. All logs are saved locally on your device for fast, offline access.
 - **✨ Fluid UX:** Modern **Paper/Slate** theme with smooth transitions and **Swipe-to-Delete** gestures.
 
@@ -18,6 +22,27 @@ A high-fidelity, minimalistic financial tracking application built with **Flutte
 ## 🚀 Experience it Now
 
 Visit the live app: [https://ayayay555.github.io/tracker/](https://ayayay555.github.io/tracker/)
+
+### **📥 How to "Download" to your Phone (PWA)**
+Experience **Curl** like a native app without using an App Store:
+
+**For iPhone (iOS):**
+1. Open the link in **Safari**.
+2. Tap the **Share** button (square with arrow).
+3. Select **"Add to Home Screen"**.
+
+**For Android:**
+1. Open the link in **Chrome**.
+2. Tap the **three dots (⋮)** menu.
+3. Select **"Install app"** or **"Add to Home screen"**.
+
+---
+
+## 📈 Privacy & Security
+Curl is built with **Privacy by Design**. 
+- **Zero Tracking:** No external analytics or trackers.
+- **Local Only:** Your transaction data never leaves your device.
+- **No Cloud:** No sign-ups or servers required.
 
 ---
 
@@ -41,14 +66,6 @@ Visit the live app: [https://ayayay555.github.io/tracker/](https://ayayay555.git
     ```bash
     flutter run -d chrome
     ```
-
----
-
-## 📈 Privacy & Security
-Curl is built with **Privacy by Design**. 
-- **Zero Tracking:** No external analytics or trackers.
-- **Local Only:** Your transaction data never leaves your device.
-- **No Cloud:** No sign-ups or servers required.
 
 ---
 
