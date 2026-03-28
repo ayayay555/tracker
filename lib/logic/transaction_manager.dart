@@ -59,6 +59,23 @@ class TransactionManager {
     await saveTransactions();
   }
 
+  // Filtered History
+  List<Transaction> getTransactionsByBank(String bankId) {
+    return _transactions.where((tx) => tx.bankId == bankId).toList();
+  }
+
+  double getBankBalance(String bankId) {
+    double balance = 0;
+    for (final tx in _transactions.where((tx) => tx.bankId == bankId)) {
+      if (tx.type == TransactionType.income) {
+        balance += tx.amount;
+      } else {
+        balance -= tx.amount;
+      }
+    }
+    return balance;
+  }
+
   // Analysis Features
   Map<String, double> getExpensesByCategory() {
     final Map<String, double> categories = {};

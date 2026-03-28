@@ -146,7 +146,62 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // User's Banks (Simple List instead of scroll)
+          // Monthly Budget Status (New Section)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Monthly Budget', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black38)),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2D3436),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Spent this month', style: TextStyle(color: Colors.white60, fontSize: 13)),
+                            Text(
+                              '₱${_manager.getTotalMonthlyExpenses().toStringAsFixed(0)} / ₱${_manager.monthlyBudget.toStringAsFixed(0)}',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: LinearProgressIndicator(
+                            value: (_manager.getTotalMonthlyExpenses() / _manager.monthlyBudget).clamp(0.0, 1.0),
+                            minHeight: 6,
+                            backgroundColor: Colors.white10,
+                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 32)),
+
+          // User's Banks
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -157,20 +212,50 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 12),
                   ..._manager.userBankIds.map((id) {
                     final bank = Bank.phBanks.firstWhere((b) => b.id == id, orElse: () => Bank(id: id, name: id.toUpperCase(), type: BankType.traditional));
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.black.withOpacity(0.05)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(bank.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                          const Icon(Icons.chevron_right, size: 16, color: Colors.black12),
-                        ],
+                    final bankBalance = _manager.getBankBalance(id);
+                    
+                    return GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BankDetailsScreen(bank: bank, manager: _manager),
+                        ),
+                      ).then((_) => setState(() {})),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.black.withOpacity(0.05)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.02),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(bank.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  bank.type == BankType.digital ? 'Digital Wallet' : 'Traditional Bank',
+                                  style: const TextStyle(fontSize: 12, color: Colors.black26, fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '₱${bankBalance.toStringAsFixed(2)}',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   }).toList(),
@@ -628,6 +713,99 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           alignment: Alignment.center,
           child: Text(label, style: TextStyle(color: isSelected ? const Color(0xFF2D3436) : Colors.black26, fontWeight: isSelected ? FontWeight.w800 : FontWeight.normal)),
         ),
+      ),
+    );
+  }
+}
+
+class BankDetailsScreen extends StatelessWidget {
+  final Bank bank;
+  final TransactionManager manager;
+
+  const BankDetailsScreen({super.key, required this.bank, required this.manager});
+
+  @override
+  Widget build(BuildContext context) {
+    final transactions = manager.getTransactionsByBank(bank.id);
+    final balance = manager.getBankBalance(bank.id);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(bank.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 40),
+            child: Column(
+              children: [
+                const Text('Current Balance', style: TextStyle(color: Colors.black38, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
+                Text(
+                  '₱${balance.toStringAsFixed(2).replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]},")}',
+                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: transactions.isEmpty
+                ? const Center(child: Text('No transactions for this bank.', style: TextStyle(color: Colors.black26)))
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    itemCount: transactions.length,
+                    itemBuilder: (context, index) {
+                      final tx = transactions[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F2F6),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                tx.type == TransactionType.income ? Icons.add_circle_outline : Icons.remove_circle_outline,
+                                color: tx.type == TransactionType.income ? Colors.black : Colors.black45,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(tx.category, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                                  Text(
+                                    '${tx.date.day}/${tx.date.month}/${tx.date.year}',
+                                    style: const TextStyle(fontSize: 12, color: Colors.black38),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              '${tx.type == TransactionType.income ? '+' : '-'}₱${tx.amount.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: tx.type == TransactionType.income ? Colors.black : Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
