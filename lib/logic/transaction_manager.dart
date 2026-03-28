@@ -8,10 +8,10 @@ class TransactionManager {
   double monthlyBudget = 20000.0;
   Map<String, double> categoryBudgets = {};
 
-  static const String _storageKey = 'fintrack_transactions';
-  static const String _banksKey = 'fintrack_user_banks';
-  static const String _budgetKey = 'fintrack_budget';
-  static const String _catBudgetKey = 'fintrack_cat_budgets';
+  static const String _storageKey = 'curl_transactions';
+  static const String _banksKey = 'curl_user_banks';
+  static const String _budgetKey = 'curl_budget';
+  static const String _catBudgetKey = 'curl_cat_budgets';
 
   List<Transaction> get transactions => List.unmodifiable(_transactions);
   List<String> get userBankIds => List.unmodifiable(_userBankIds);

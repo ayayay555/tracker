@@ -1,4 +1,4 @@
-# FinTrack: Minimalistic Financial Tracker (PH Edition) 🇵🇭
+# Curl: Minimalistic Financial Tracker (PH Edition) 🇵🇭
 
 A high-fidelity, minimalistic financial tracking application built with **Flutter**. Designed specifically for the Philippine market with a focus on speed, privacy, and a premium user experience.
 
@@ -45,7 +45,7 @@ Visit the live app: [https://ayayay555.github.io/tracker/](https://ayayay555.git
 ---
 
 ## 📈 Privacy & Security
-FinTrack is built with **Privacy by Design**. 
+Curl is built with **Privacy by Design**. 
 - **Zero Tracking:** No external analytics or trackers.
 - **Local Only:** Your transaction data never leaves your device.
 - **No Cloud:** No sign-ups or servers required.
