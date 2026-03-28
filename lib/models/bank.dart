@@ -26,11 +26,13 @@ class Bank {
     Bank(id: 'dbp', name: 'DBP', type: BankType.traditional),
     Bank(id: 'unionbank', name: 'UnionBank', type: BankType.traditional),
     
-    // Digital Banks
+    // Digital Banks & Wallets
+    Bank(id: 'gcash', name: 'GCash', type: BankType.digital),
     Bank(id: 'maya', name: 'Maya Bank', type: BankType.digital),
     Bank(id: 'gotyme', name: 'GoTyme Bank', type: BankType.digital),
-    Bank(id: 'cimb', name: 'CIMB Bank PH', type: BankType.digital),
     Bank(id: 'seabank', name: 'SeaBank', type: BankType.digital),
+    Bank(id: 'grabpay', name: 'GrabPay', type: BankType.digital),
+    Bank(id: 'cimb', name: 'CIMB Bank PH', type: BankType.digital),
     Bank(id: 'tonik', name: 'Tonik Bank', type: BankType.digital),
     Bank(id: 'uniondigital', name: 'UnionDigital Bank', type: BankType.digital),
     Bank(id: 'uno', name: 'UNO Digital Bank', type: BankType.digital),
