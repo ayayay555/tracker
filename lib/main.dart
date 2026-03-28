@@ -8,7 +8,7 @@ import 'logic/transaction_manager.dart';
 void main() {
   runApp(
     DevicePreview(
-      enabled: !kIsWeb ? false : true, // Only enabled on Web for preview
+      enabled: kIsWeb && ![TargetPlatform.android, TargetPlatform.iOS].contains(defaultTargetPlatform),
       builder: (context) => const CurlApp(),
     ),
   );
