@@ -251,11 +251,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       );
-                    },
-                    itemCount: _manager.transactions.length,
-                  ),
-                ),
-          
+                      },
+                      childCount: _manager.transactions.length,
+                      ),
+                      ),
           // Padding for FAB
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
