@@ -8,13 +8,13 @@ void main() {
   runApp(
     DevicePreview(
       enabled: true,
-      builder: (context) => const FinTrackApp(),
+      builder: (context) => const CurlApp(),
     ),
   );
 }
 
-class FinTrackApp extends StatelessWidget {
-  const FinTrackApp({super.key});
+class CurlApp extends StatelessWidget {
+  const CurlApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class FinTrackApp extends StatelessWidget {
       useInheritedMediaQuery: true,
       locale: DevicePreview.locale(context),
       builder: DevicePreview.appBuilder,
-      title: 'FinTrack',
+      title: 'Curl',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.light,
@@ -155,43 +155,49 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   const Text('Monthly Budget', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black38)),
                   const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2D3436),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Spent this month', style: TextStyle(color: Colors.white60, fontSize: 13)),
-                            Text(
-                              '₱${_manager.getTotalMonthlyExpenses().toStringAsFixed(0)} / ₱${_manager.monthlyBudget.toStringAsFixed(0)}',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: LinearProgressIndicator(
-                            value: (_manager.getTotalMonthlyExpenses() / _manager.monthlyBudget).clamp(0.0, 1.0),
-                            minHeight: 6,
-                            backgroundColor: Colors.white10,
-                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => BudgetConfigScreen(manager: _manager)),
+                    ).then((_) => setState(() {})),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2D3436),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Spent this month', style: TextStyle(color: Colors.white60, fontSize: 13)),
+                              Text(
+                                '₱${_manager.getTotalMonthlyExpenses().toStringAsFixed(0)} / ₱${_manager.monthlyBudget.toStringAsFixed(0)}',
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: LinearProgressIndicator(
+                              value: (_manager.getTotalMonthlyExpenses() / _manager.monthlyBudget).clamp(0.0, 1.0),
+                              minHeight: 6,
+                              backgroundColor: Colors.white10,
+                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -457,7 +463,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-              const Text('Welcome to FinTrack', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
+              const Text('Welcome to Curl', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
               const SizedBox(height: 12),
               const Text('Which banks or wallets do you use?', style: TextStyle(fontSize: 16, color: Colors.black45)),
               const SizedBox(height: 40),
@@ -806,6 +812,90 @@ class BankDetailsScreen extends StatelessWidget {
                   ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class BudgetConfigScreen extends StatefulWidget {
+  final TransactionManager manager;
+  const BudgetConfigScreen({super.key, required this.manager});
+
+  @override
+  State<BudgetConfigScreen> createState() => _BudgetConfigScreenState();
+}
+
+class _BudgetConfigScreenState extends State<BudgetConfigScreen> {
+  late TextEditingController _totalBudgetController;
+  final List<String> _categories = ['Food', 'Transport', 'Bills', 'Shopping', 'Others'];
+
+  @override
+  void initState() {
+    super.initState();
+    _totalBudgetController = TextEditingController(text: widget.manager.monthlyBudget.toStringAsFixed(0));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Adjust Budget', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Monthly Goal', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black38)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _totalBudgetController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
+              decoration: const InputDecoration(
+                prefixText: '₱',
+                border: InputBorder.none,
+              ),
+              onChanged: (val) {
+                final amount = double.tryParse(val) ?? 0;
+                if (amount > 0) widget.manager.updateBudget(amount);
+              },
+            ),
+            const SizedBox(height: 48),
+            const Text('Category Budgets (Optional)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black38)),
+            const SizedBox(height: 16),
+            ..._categories.map((cat) {
+              final currentCatBudget = widget.manager.categoryBudgets[cat] ?? 0;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(cat, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
+                    SizedBox(
+                      width: 100,
+                      child: TextField(
+                        textAlign: TextAlign.right,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          hintText: '₱${currentCatBudget.toStringAsFixed(0)}',
+                          hintStyle: const TextStyle(color: Colors.black12),
+                          border: InputBorder.none,
+                        ),
+                        onChanged: (val) {
+                          final amount = double.tryParse(val) ?? 0;
+                          widget.manager.updateCategoryBudget(cat, amount);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ],
+        ),
       ),
     );
   }

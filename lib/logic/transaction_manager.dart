@@ -6,8 +6,12 @@ class TransactionManager {
   List<Transaction> _transactions = [];
   List<String> _userBankIds = [];
   double monthlyBudget = 20000.0;
+  Map<String, double> categoryBudgets = {};
+
   static const String _storageKey = 'fintrack_transactions';
   static const String _banksKey = 'fintrack_user_banks';
+  static const String _budgetKey = 'fintrack_budget';
+  static const String _catBudgetKey = 'fintrack_cat_budgets';
 
   List<Transaction> get transactions => List.unmodifiable(_transactions);
   List<String> get userBankIds => List.unmodifiable(_userBankIds);
@@ -24,6 +28,25 @@ class TransactionManager {
 
     // Load User Banks
     _userBankIds = prefs.getStringList(_banksKey) ?? [];
+
+    // Load Budgets
+    monthlyBudget = prefs.getDouble(_budgetKey) ?? 20000.0;
+    final String? catData = prefs.getString(_catBudgetKey);
+    if (catData != null) {
+      categoryBudgets = Map<String, double>.from(jsonDecode(catData));
+    }
+  }
+
+  Future<void> updateBudget(double amount) async {
+    monthlyBudget = amount;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_budgetKey, amount);
+  }
+
+  Future<void> updateCategoryBudget(String category, double amount) async {
+    categoryBudgets[category] = amount;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_catBudgetKey, jsonEncode(categoryBudgets));
   }
 
   Future<void> saveUserBanks() async {
