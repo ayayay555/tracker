@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:device_preview/device_preview.dart';
 import 'models/bank.dart';
 import 'models/transaction.dart';
 import 'logic/transaction_manager.dart';
 
 void main() {
-  runApp(const FinTrackApp());
+  runApp(
+    DevicePreview(
+      enabled: true,
+      builder: (context) => const FinTrackApp(),
+    ),
+  );
 }
 
 class FinTrackApp extends StatelessWidget {
@@ -13,6 +19,9 @@ class FinTrackApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      useInheritedMediaQuery: true,
+      locale: DevicePreview.locale(context),
+      builder: DevicePreview.appBuilder,
       title: 'FinTrack',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
