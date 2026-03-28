@@ -4,17 +4,42 @@ import '../models/transaction.dart';
 
 class TransactionManager {
   List<Transaction> _transactions = [];
+  List<String> _userBankIds = [];
   double monthlyBudget = 20000.0;
   static const String _storageKey = 'fintrack_transactions';
+  static const String _banksKey = 'fintrack_user_banks';
 
   List<Transaction> get transactions => List.unmodifiable(_transactions);
+  List<String> get userBankIds => List.unmodifiable(_userBankIds);
 
   Future<void> loadTransactions() async {
     final prefs = await SharedPreferences.getInstance();
+    
+    // Load Transactions
     final String? data = prefs.getString(_storageKey);
     if (data != null) {
       final List<dynamic> decoded = jsonDecode(data);
       _transactions = decoded.map((item) => Transaction.fromJson(item)).toList();
+    }
+
+    // Load User Banks
+    _userBankIds = prefs.getStringList(_banksKey) ?? [];
+  }
+
+  Future<void> saveUserBanks() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_banksKey, _userBankIds);
+  }
+
+  void setUserBanks(List<String> ids) {
+    _userBankIds = ids;
+    saveUserBanks();
+  }
+
+  void addCustomBank(String id) {
+    if (!_userBankIds.contains(id)) {
+      _userBankIds.add(id);
+      saveUserBanks();
     }
   }
 
