@@ -15,6 +15,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
           
       - name: Build Web
         run: flutter build web --base-href "/tracker/" # Change /tracker/ to your repo name
