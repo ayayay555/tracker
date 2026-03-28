@@ -621,26 +621,28 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             ],
           ),
           const SizedBox(height: 24),
-          const Text('Category', style: TextStyle(color: Colors.black38, fontSize: 12, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _categories.map((cat) {
-              final isSelected = _selectedCategory == cat;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedCategory = cat),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF2D3436) : const Color(0xFFF1F2F6),
-                    borderRadius: BorderRadius.circular(12),
+          if (_type == TransactionType.expense) ...[
+            const Text('Category', style: TextStyle(color: Colors.black38, fontSize: 12, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _categories.map((cat) {
+                final isSelected = _selectedCategory == cat;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedCategory = cat),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFF2D3436) : const Color(0xFFF1F2F6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(cat, style: TextStyle(color: isSelected ? Colors.white : Colors.black87)),
                   ),
-                  child: Text(cat, style: TextStyle(color: isSelected ? Colors.white : Colors.black87)),
-                ),
-              );
-            }).toList(),
-          ),
+                );
+              }).toList(),
+            ),
+          ],
           const SizedBox(height: 40),
           SizedBox(
             width: double.infinity,
@@ -652,7 +654,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                   final tx = Transaction(
                     bankId: _selectedBankId,
                     amount: amount,
-                    category: _selectedCategory,
+                    category: _type == TransactionType.income ? 'Income' : _selectedCategory,
                     type: _type,
                     date: DateTime.now(),
                   );
