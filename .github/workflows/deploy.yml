@@ -3,22 +3,24 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main # or master
+      - main
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
-      - name: Install Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          cache: true
           
       - name: Build Web
-        run: flutter build web --base-href "/tracker/" # Change /tracker/ to your repo name
+        run: flutter build web --base-href "/tracker/"
         
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
