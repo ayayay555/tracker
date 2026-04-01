@@ -76,10 +76,10 @@ class _CurlAppState extends State<CurlApp> {
           primaryColor: const Color(0xFFFFD93D),
           colorScheme: const ColorScheme.dark(
             primary: Color(0xFFFFD93D),
-            secondary: Colors.white,
+            secondary: Color(0xFF2C2C2E),
             surface: Color(0xFF1E1E1E),
             onSurface: Colors.white,
-            onSecondary: Color(0xFF121212),
+            onSecondary: Colors.white,
           ),
           cardColor: const Color(0xFF1E1E1E),
         );
