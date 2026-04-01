@@ -1,10 +1,11 @@
 import 'package:uuid/uuid.dart';
 
-enum TransactionType { income, expense }
+enum TransactionType { income, expense, transfer }
 
 class Transaction {
   final String id;
   final String bankId;
+  final String? targetBankId; // Used for transfers
   final double amount;
   final String category;
   final TransactionType type;
@@ -14,6 +15,7 @@ class Transaction {
   Transaction({
     String? id,
     required this.bankId,
+    this.targetBankId,
     required this.amount,
     required this.category,
     required this.type,
@@ -25,6 +27,7 @@ class Transaction {
   Map<String, dynamic> toJson() => {
     'id': id,
     'bankId': bankId,
+    'targetBankId': targetBankId,
     'amount': amount,
     'category': category,
     'type': type.index,
@@ -35,6 +38,7 @@ class Transaction {
   factory Transaction.fromJson(Map<String, dynamic> json) => Transaction(
     id: json['id'],
     bankId: json['bankId'],
+    targetBankId: json['targetBankId'],
     amount: json['amount'],
     category: json['category'],
     type: TransactionType.values[json['type']],
