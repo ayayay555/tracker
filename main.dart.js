@@ -16907,7 +16907,7 @@ if(d0==null){p=d1==null?c6:d1.a
 o=p}else o=d0
 if(o==null)o=B.ag
 n=o===B.aq
-if(d3){if(d1==null)d1=n?B.Pw:B.Pv
+if(d3){if(d1==null)d1=n?B.Pv:B.Pu
 m=n?d1.k2:d1.b
 l=n?d1.k3:d1.c
 k=d1.k2
@@ -30357,7 +30357,7 @@ m=r.gkZ()
 l=r.gmK()
 k=r.geX()
 j=r.ghN()
-return s.arg(A.aOf(m,j,B.j0,r.y,r.c,q,n,r.Q,r.d,p,r.r,o,r.ay,r.z,k,r.as,l),B.Px,B.k,B.k,B.k,B.k,s.bO.Yl(B.k,A.av(B.e.aZ(178.5),B.k.B()>>>16&255,B.k.B()>>>8&255,B.k.B()&255),B.k,A.av(31,B.k.B()>>>16&255,B.k.B()>>>8&255,B.k.B()&255),A.av(31,B.k.B()>>>16&255,B.k.B()>>>8&255,B.k.B()&255),B.k))}},
+return s.arg(A.aOf(m,j,B.j0,r.y,r.c,q,n,r.Q,r.d,p,r.r,o,r.ay,r.z,k,r.as,l),B.Pw,B.k,B.k,B.k,B.k,s.bO.Yl(B.k,A.av(B.e.aZ(178.5),B.k.B()>>>16&255,B.k.B()>>>8&255,B.k.B()&255),B.k,A.av(31,B.k.B()>>>16&255,B.k.B()>>>8&255,B.k.B()&255),A.av(31,B.k.B()>>>16&255,B.k.B()>>>8&255,B.k.B()&255),B.k))}},
 b_W(a){return B.iu},
 aIK(a,b,c,d,e){return A.b9v(a,b,c,d,e,e)},
 b9v(a,b,c,d,e,f){var s=0,r=A.Y(f),q,p
@@ -47619,8 +47619,8 @@ return A.W(null,r)}})
 return A.X($async$zx,r)},
 adi(a,b){var s=A.ji(null,null,A.baW().$0(),!0)
 switch(a.a){case 0:return s.K3(B.ag,B.i,B.Py,B.eW,B.Qw)
-case 2:return s.K3(B.aq,B.rs,B.Pt,B.eW,B.iQ)
-case 1:return s.K3(B.ag,B.i,B.Pu,B.ht,B.QX)}},
+case 2:return s.K3(B.aq,B.rs,B.Px,B.eW,B.hm)
+case 1:return s.K3(B.ag,B.i,B.Pt,B.ht,B.QX)}},
 P(a){var s,r,q,p=this
 if(p.e)return B.a8u
 s=A.b0p(a)
@@ -47700,7 +47700,7 @@ h=A.e([A.e3(A.e([q,A.eU(o,new A.zq(A.ce(o,A.eY(B.tH,k,o,o),B.r,o,o,new A.bF(r,o,
 r=t.uj
 if(A.ff(p.a.c.a,r).length===0)h.push(new A.bq(B.Th,A.fN(A.aQ("No transactions yet",o,o,o,o,A.bv(o,o,k.by(0.5),o,o,o,o,o,o,o,o,o,o,o,o,o,o,!0,o,o,o,o,o,o,o,o),o,o),o,o),o))
 else{if(p.d)k=A.ff(p.a.c.a,r).length
-else k=A.ff(p.a.c.a,r).length>3?3:A.ff(p.a.c.a,r).length
+else k=A.ff(p.a.c.a,r).length>1?1:A.ff(p.a.c.a,r).length
 h.push(A.aLf(new A.aAD(p,m),k,B.oq,!0))}return A.mO(o,o,A.k1(!0,A.aKr(B.mf,A.e([new A.t9(new A.bq(B.cp,g,o),o),new A.t9(new A.bq(B.t0,i,o),o),new A.t9(new A.bq(B.cp,A.uj(A.dk(h,B.aC,B.U,B.V),o,B.eb,new A.bF(l,o,o,f,s,o,B.a0),B.bE,o,o,B.cp,o,o),o),o),B.arH],j)),B.ab,!0),o,o,o)},
 P1(a,b,c,d){var s=null,r=B.i.by(0.15),q=A.cq(20)
 return A.i9(A.eU(s,A.ce(s,A.e3(A.e([A.eY(c,B.i,s,18),B.lm,A.aQ(b,s,s,s,s,B.auo,s,s)],t.p),B.a2,B.i1,B.V,0),B.r,s,s,new A.bF(r,s,s,q,s,s,B.a0),s,s,s,B.Tg,s,s,s),B.W,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s,d,s,s,s,s,s,s),1)},
@@ -47936,7 +47936,7 @@ return null},
 $S:0}
 A.W0.prototype={
 P(a){var s=null,r=A.a_(a),q=r.ax.k3,p=A.aQ("Settings",s,s,s,s,A.bv(s,s,q,s,s,s,s,s,s,s,s,32,s,s,B.bo,s,s,!0,s,-0.5,s,s,s,s,s,s),s,s),o=A.aQ("Appearance",s,s,s,s,A.bv(s,s,q.by(0.5),s,s,s,s,s,s,s,s,s,s,s,B.aw,s,s,!0,s,s,s,s,s,s,s,s),s,s),n=A.cq(24),m=A.e([new A.bn(0,B.D,B.k.by(0.02),B.i3,20)],t.V),l=t.p
-return A.mO(s,s,A.k1(!0,A.ajt(A.e([B.is,p,B.dU,o,B.is,A.ce(s,A.dk(A.e([this.Is(a,"Banana Yellow",B.hb,B.eW),A.aem(q.by(0.05),1),this.Is(a,"System Default",B.m9,B.dO),A.aem(q.by(0.05),1),this.Is(a,"Dark Mode",B.ma,B.hm)],l),B.a2,B.U,B.V),B.r,s,s,new A.bF(r.at,s,s,n,m,s,B.a0),s,s,s,s,s,s,s)],l),B.cp,s,!1),B.ab,!0),s,s,s)},
+return A.mO(s,s,A.k1(!0,A.ajt(A.e([B.is,p,B.dU,o,B.is,A.ce(s,A.dk(A.e([this.Is(a,"Banana Yellow",B.hb,B.eW),A.aem(q.by(0.05),1),this.Is(a,"System Default",B.m9,B.dO),A.aem(q.by(0.05),1),this.Is(a,"Dark Mode",B.ma,B.iQ)],l),B.a2,B.U,B.V),B.r,s,s,new A.bF(r.at,s,s,n,m,s,B.a0),s,s,s,s,s,s,s)],l),B.cp,s,!1),B.ab,!0),s,s,s)},
 Is(a,b,c,d){var s=null,r=this.c.y===c,q=A.a_(a),p=A.abV(d,s,s,16),o=r?B.cs:B.cr,n=q.ax
 o=A.aQ(b,s,s,s,s,A.bv(s,s,n.k3,s,s,s,s,s,s,s,s,s,s,s,o,s,s,!0,s,s,s,s,s,s,s,s),s,s)
 n=r?A.eY(B.nN,n.b,s,s):s
@@ -48020,7 +48020,7 @@ s.uf()
 q.a.c.qG(q.w)
 q.a.awd(0)}},
 P(a){var s,r,q=this,p=null,o=A.a_(a),n=o.ax,m=n.k3,l=t.p
-m=A.i9(A.aQV(A.e([q.aoc(o),q.a9a(o),new A.bq(B.t5,A.dk(A.e([A.aQ("Choose Theme",p,p,p,p,A.bv(p,p,m,p,p,p,p,p,p,p,p,32,p,p,B.bo,p,p,!0,p,-1,p,p,p,p,p,p),p,p),B.ph,A.aQ("Pick a vibe that suits you best.",p,p,p,p,A.bv(p,p,m.by(0.5),p,p,p,p,p,p,p,p,16,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),B.dU,q.Ir(o,"Banana","Vibrant & Yellow",B.hb,B.eW),q.Ir(o,"System","Clean & Minimal",B.m9,B.dO),q.Ir(o,"Dark Mode","Easy on the eyes",B.ma,B.hm)],l),B.aC,B.U,B.V),p)],l),B.H,q.d,B.W,B.oq),1)
+m=A.i9(A.aQV(A.e([q.aoc(o),q.a9a(o),new A.bq(B.t5,A.dk(A.e([A.aQ("Choose Theme",p,p,p,p,A.bv(p,p,m,p,p,p,p,p,p,p,p,32,p,p,B.bo,p,p,!0,p,-1,p,p,p,p,p,p),p,p),B.ph,A.aQ("Pick a vibe that suits you best.",p,p,p,p,A.bv(p,p,m.by(0.5),p,p,p,p,p,p,p,p,16,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),B.dU,q.Ir(o,"Banana","Vibrant & Yellow",B.hb,B.eW),q.Ir(o,"System","Clean & Minimal",B.m9,B.dO),q.Ir(o,"Dark Mode","Easy on the eyes",B.ma,B.iQ)],l),B.aC,B.U,B.V),p)],l),B.H,q.d,B.W,B.oq),1)
 s=q.a9N()?q.gaid():p
 n=n.y
 r=A.cq(24)
@@ -111264,16 +111264,12 @@ B.Pq=new A.MV(B.arW,null,null,B.Pp,null,null,null,null,null,null)
 B.Pr=new A.acm(1,"matrix")
 B.i=new A.v(1,1,1,1,B.h)
 B.rA=new A.v(1,0.8117647058823529,0.4,0.4745098039215686,B.h)
-B.iQ=new A.v(1,0.07058823529411765,0.07058823529411765,0.07058823529411765,B.h)
-B.Ps=new A.jF(B.aq,B.i,B.k,null,null,null,null,null,null,B.i,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.rA,B.k,null,null,B.iQ,B.i,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.iQ,B.i)
-B.eW=new A.v(1,1,0.8509803921568627,0.23921568627450981,B.h)
-B.hm=new A.v(1,0.17254901960784313,0.17254901960784313,0.1803921568627451,B.h)
-B.rs=new A.v(1,0.11764705882352941,0.11764705882352941,0.11764705882352941,B.h)
-B.Pt=new A.jF(B.aq,B.eW,B.k,null,null,null,null,null,null,B.hm,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.rA,B.k,null,null,B.rs,B.i,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.iQ,B.i)
+B.hm=new A.v(1,0.07058823529411765,0.07058823529411765,0.07058823529411765,B.h)
+B.Ps=new A.jF(B.aq,B.i,B.k,null,null,null,null,null,null,B.i,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.rA,B.k,null,null,B.hm,B.i,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.hm,B.i)
 B.ht=new A.v(1,0,0.47843137254901963,1,B.h)
 B.qS=new A.v(1,0.10980392156862745,0.10980392156862745,0.11764705882352941,B.h)
 B.mr=new A.v(1,0.6901960784313725,0,0.12549019607843137,B.h)
-B.Pu=new A.jF(B.ag,B.ht,B.i,null,null,null,null,null,null,B.qS,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.mr,B.i,null,null,B.i,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.i,B.k)
+B.Pt=new A.jF(B.ag,B.ht,B.i,null,null,null,null,null,null,B.qS,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.mr,B.i,null,null,B.i,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.i,B.k)
 B.mA=new A.v(1,0.403921568627451,0.3137254901960784,0.6431372549019608,B.h)
 B.j_=new A.v(1,0.9176470588235294,0.8666666666666667,1,B.h)
 B.ja=new A.v(1,0.30980392156862746,0.21568627450980393,0.5450980392156862,B.h)
@@ -111305,7 +111301,7 @@ B.PK=new A.v(1,0.4745098039215686,0.4549019607843137,0.49411764705882355,B.h)
 B.qX=new A.v(1,0.792156862745098,0.7686274509803922,0.8156862745098039,B.h)
 B.rC=new A.v(1,0.19607843137254902,0.1843137254901961,0.20784313725490197,B.h)
 B.Ql=new A.v(1,0.9607843137254902,0.9372549019607843,0.9686274509803922,B.h)
-B.Pv=new A.jF(B.ag,B.mA,B.i,B.j_,B.ja,B.j_,B.ho,B.rx,B.ja,B.Pz,B.i,B.j5,B.j4,B.j5,B.mx,B.r1,B.j4,B.Qr,B.i,B.iV,B.iU,B.iV,B.ms,B.ra,B.iU,B.Qx,B.i,B.r6,B.ro,B.mF,B.mp,B.Qu,B.PC,B.mF,B.i,B.QU,B.Qb,B.Q0,B.j2,B.mu,B.PK,B.qX,B.k,B.k,B.rC,B.Ql,B.ho,B.mA,B.mF,B.mp)
+B.Pu=new A.jF(B.ag,B.mA,B.i,B.j_,B.ja,B.j_,B.ho,B.rx,B.ja,B.Pz,B.i,B.j5,B.j4,B.j5,B.mx,B.r1,B.j4,B.Qr,B.i,B.iV,B.iU,B.iV,B.ms,B.ra,B.iU,B.Qx,B.i,B.r6,B.ro,B.mF,B.mp,B.Qu,B.PC,B.mF,B.i,B.QU,B.Qb,B.Q0,B.j2,B.mu,B.PK,B.qX,B.k,B.k,B.rC,B.Ql,B.ho,B.mA,B.mF,B.mp)
 B.Q9=new A.v(1,0.2196078431372549,0.11764705882352941,0.4470588235294118,B.h)
 B.Qm=new A.v(1,0.2,0.17647058823529413,0.2549019607843137,B.h)
 B.PM=new A.v(1,0.28627450980392155,0.1450980392156863,0.19607843137254902,B.h)
@@ -111318,9 +111314,13 @@ B.PA=new A.v(1,0.12941176470588237,0.12156862745098039,0.14901960784313725,B.h)
 B.R4=new A.v(1,0.16862745098039217,0.1607843137254902,0.18823529411764706,B.h)
 B.PR=new A.v(1,0.21176470588235294,0.20392156862745098,0.23137254901960785,B.h)
 B.PD=new A.v(1,0.5764705882352941,0.5607843137254902,0.6,B.h)
-B.Pw=new A.jF(B.aq,B.ho,B.Q9,B.ja,B.j_,B.j_,B.ho,B.rx,B.ja,B.mx,B.Qm,B.j4,B.j5,B.j5,B.mx,B.r1,B.j4,B.ms,B.PM,B.iU,B.iV,B.iV,B.ms,B.ra,B.iU,B.PJ,B.QR,B.ro,B.r6,B.mC,B.j2,B.mu,B.mC,B.Qc,B.QG,B.mp,B.PA,B.R4,B.PR,B.qX,B.PD,B.mu,B.k,B.k,B.j2,B.rC,B.mA,B.ho,B.mC,B.j2)
-B.Px=new A.jF(B.ag,B.k,B.i,null,null,null,null,null,null,B.k,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.mr,B.i,null,null,B.i,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.i,B.k)
-B.Py=new A.jF(B.ag,B.eW,B.i,null,null,null,null,null,null,B.hm,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.mr,B.i,null,null,B.i,B.hm,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.i,B.k)
+B.Pv=new A.jF(B.aq,B.ho,B.Q9,B.ja,B.j_,B.j_,B.ho,B.rx,B.ja,B.mx,B.Qm,B.j4,B.j5,B.j5,B.mx,B.r1,B.j4,B.ms,B.PM,B.iU,B.iV,B.iV,B.ms,B.ra,B.iU,B.PJ,B.QR,B.ro,B.r6,B.mC,B.j2,B.mu,B.mC,B.Qc,B.QG,B.mp,B.PA,B.R4,B.PR,B.qX,B.PD,B.mu,B.k,B.k,B.j2,B.rC,B.mA,B.ho,B.mC,B.j2)
+B.Pw=new A.jF(B.ag,B.k,B.i,null,null,null,null,null,null,B.k,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.mr,B.i,null,null,B.i,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.i,B.k)
+B.eW=new A.v(1,1,0.8509803921568627,0.23921568627450981,B.h)
+B.rs=new A.v(1,0.11764705882352941,0.11764705882352941,0.11764705882352941,B.h)
+B.Px=new A.jF(B.aq,B.eW,B.k,null,null,null,null,null,null,B.i,B.hm,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.rA,B.k,null,null,B.rs,B.i,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.hm,B.i)
+B.iQ=new A.v(1,0.17254901960784313,0.17254901960784313,0.1803921568627451,B.h)
+B.Py=new A.jF(B.ag,B.eW,B.i,null,null,null,null,null,null,B.iQ,B.k,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.mr,B.i,null,null,B.i,B.iQ,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,B.i,B.k)
 B.eU=new A.v(1,0.24705882352941178,0.1450980392156863,0.2823529411764706,B.h)
 B.PG=new A.v(1,0.13333333333333333,0.14901960784313725,0.14901960784313725,B.h)
 B.PI=new A.v(0.8666666666666667,0.16862745098039217,0.16862745098039217,0.17647058823529413,B.h)
