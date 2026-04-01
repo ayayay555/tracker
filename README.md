@@ -1,41 +1,40 @@
-# Curl: Minimalistic Financial Tracker (PH Edition) 🇵🇭
+# Curl: Premium Financial Companion 🍌🇵🇭
 
 ![Curl Preview](img/mockups.png)
 
-A high-fidelity, minimalistic financial tracking application built with **Flutter**. Designed specifically for the Philippine market with a focus on speed, privacy, and a premium user experience.
+**Curl** is a high-fidelity, premium financial tracking application built with **Flutter**. Reimagined with a vibrant mascot-driven aesthetic and designed specifically for the Philippine market, Curl combines high-end UX with 100% offline privacy.
 
 ---
 
-## 🏗️ Codebase Overview
+## 🏗️ Premium Architecture
 
-Curl follows a **Local-First, Minimalist** architecture designed for the Philippine financial ecosystem.
+Curl follows a **Local-First, Immersive** architecture designed for speed and security.
 
 ### **Core Modules**
-- **`lib/logic/transaction_manager.dart`**: The engine of the app. It handles all business logic, manages the user's selected banks, calculates balances, and provides data persistence via `shared_preferences`.
-- **`lib/models/bank.dart`**: Contains pre-configured data for **20+ major Philippine banks** (BDO, GCash, Maya, etc.), categorized into traditional and digital types.
-- **`lib/models/transaction.dart`**: A clean data model for both income and expenses with automatic ID generation and JSON serialization.
-- **`lib/main.dart`**: The UI entry point. It manages state transitions between onboarding, the home dashboard, and the analysis tabs using standard Flutter `StatefulWidgets`.
+- **`lib/logic/transaction_manager.dart`**: The engine. Manages itemized budgets, bank balances, and local persistence via `shared_preferences`.
+- **`lib/models/bank.dart`**: Registry for **20+ Philippine banks** (Traditional & Digital) with custom support.
+- **`lib/main.dart`**: The premium UI container. Features a custom theme engine, animated transitions, and cross-platform asset handling.
 
 ### **Tech Stack**
-- **Framework:** Flutter (Web/Mobile)
-- **Persistence:** `shared_preferences` (Encrypted/Local storage)
-- **UI Design:** "Paper/Slate" Aesthetic (Custom Slate theme + Bouncing physics)
-- **Simulation:** `device_preview` (Enables the phone frame on web)
+- **Framework:** Flutter (Immersive Fullscreen Mode)
+- **Typography:** `Plus Jakarta Sans` (Google Fonts)
+- **Persistence:** `shared_preferences` (100% Offline)
+- **Assets:** `image_picker` for cross-platform profile personalization.
 
 ---
 
-## ✨ Key Features
+## ✨ Premium Features
 
-- **📱 Mobile Live Preview:** Experience the app in a realistic phone frame directly in your browser.
-- **🎯 Interactive Onboarding:** Personalize your experience by selecting only the banks and wallets you actually use.
-- **🏦 PH Bank Integration:** Deep support for top traditional and digital banks (BDO, Maya, GCash, GoTyme, etc.) + **Custom Bank** support.
-- **📊 Smart Analysis & Budgeting:** 
-  - **Configurable Budgets:** Set your total monthly goal and specific category limits.
-  - **Live Progress Bar:** Monitor your spending in real-time directly on the dashboard.
-- **📑 Bank-Specific Insights:** Tap any account to see its specific transaction history and balance.
-- **⚡ Streamlined Logging:** Fast entry for expenses and category-free logging for deposits.
-- **💾 Local Persistence:** Your data is yours. All logs are saved locally on your device for fast, offline access.
-- **✨ Fluid UX:** Modern **Paper/Slate** theme with smooth transitions and **Swipe-to-Delete** gestures.
+- **🍌 Mascot-Driven Branding:** Meet our "Banana" companion! Integrated as the official app icon across Android, iOS, and Web.
+- **🎯 Dynamic Onboarding:** A beautiful 3-step journey to personalize your username, bank list, and visual vibe.
+- **🎨 Elite Theming:** Switch instantly between **Banana Yellow**, **Sleek Dark**, or **System Default** modes with a high-contrast theme engine.
+- **📊 Itemized Budget Planner:** Don't just set a limit—plan your month. Add specific items (Rent, Food, etc.) and track progress in real-time.
+- **🏦 Intelligent Banking:**
+  - **Bank Breakdown:** Tap your balance island to see a detailed modal of funds per bank.
+  - **Safety First:** Built-in **Insufficient Funds** warnings for withdrawals and transfers.
+- **💸 Intuitive Transfers:** Swap funds between accounts with a sleek, animated stacked-card interface.
+- **📸 Personalized Profile:** Fully editable personal info with cross-platform profile picture upload support.
+- **📑 Activity Islands:** Smart, expandable transaction history that keeps your dashboard clean and focused.
 
 ---
 
@@ -43,48 +42,35 @@ Curl follows a **Local-First, Minimalist** architecture designed for the Philipp
 
 Visit the live app: [https://ayayay555.github.io/tracker/](https://ayayay555.github.io/tracker/)
 
-### **📥 How to "Download" to your Phone (PWA)**
-Experience **Curl** like a native app without using an App Store:
+### **📥 Installation (PWA)**
+Curl is a **Progressive Web App**. Install it for a native experience:
 
-**For iPhone (iOS):**
-1. Open the link in **Safari**.
-2. Tap the **Share** button (square with arrow).
-3. Select **"Add to Home Screen"**.
-
-**For Android:**
-1. Open the link in **Chrome**.
-2. Tap the **three dots (⋮)** menu.
-3. Select **"Install app"** or **"Add to Home screen"**.
+**iOS:** Open in Safari ➔ Tap **Share** ➔ **Add to Home Screen**.  
+**Android:** Open in Chrome ➔ Tap **(⋮)** ➔ **Install app**.
 
 ---
 
 ## 📈 Privacy & Security
-Curl is built with **Privacy by Design**. 
-- **Zero Tracking:** No external analytics or trackers.
-- **Local Only:** Your transaction data never leaves your device.
-- **No Cloud:** No sign-ups or servers required.
+- **No Cloud:** Your financial data never leaves your device.
+- **Zero Tracking:** No analytics, no accounts, no ads.
+- **Local-Only:** Privacy by design.
 
 ---
 
-## 🛠️ Getting Started (Local Development)
+## 🛠️ Local Development
 
-### Prerequisites
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) (Stable channel)
-- Google Chrome
-
-### Installation
-1.  **Clone the repository:**
+1.  **Clone & Enter:**
     ```bash
     git clone https://github.com/ayayay555/tracker.git
     cd tracker
     ```
-2.  **Install dependencies:**
+2.  **Sync Dependencies:**
     ```bash
     flutter pub get
     ```
-3.  **Run the app:**
+3.  **Run:**
     ```bash
-    flutter run -d chrome
+    flutter run -d chrome # or your mobile device
     ```
 
 ---
