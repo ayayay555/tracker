@@ -1132,19 +1132,25 @@ class _TransferPageState extends State<TransferPage>
                 child: TextField(
                   controller: _amountController,
                   keyboardType: TextInputType.number,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 40,
                     fontWeight: FontWeight.w900,
+                    color: theme.colorScheme.onSurface,
                   ),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     prefixText: '₱ ',
+                    prefixStyle: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontSize: 40,
+                      fontWeight: FontWeight.w900,
+                    ),
                     border: InputBorder.none,
                     hintText: '0.00',
                   ),
                 ),
               ),
               const SizedBox(height: 40),
-
+              
               SizedBox(
                 width: double.infinity,
                 height: 64,
@@ -1232,8 +1238,12 @@ class _TransferPageState extends State<TransferPage>
 
   void _performTransfer() {
     final amount = double.tryParse(_amountController.text) ?? 0;
-    if (fromBankId != null && amount > widget.manager.getBankBalance(fromBankId!)) {
-      _showWarning('Insufficient Funds', 'You are transferring more than your current balance in this bank.');
+    if (fromBankId != null &&
+        amount > widget.manager.getBankBalance(fromBankId!)) {
+      _showWarning(
+        'Insufficient Funds',
+        'You are transferring more than your current balance in this bank.',
+      );
       return;
     }
     if (amount > 0 &&
@@ -1261,13 +1271,30 @@ class _TransferPageState extends State<TransferPage>
   }
 
   void _showWarning(String title, String message) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Text(message),
+        backgroundColor: theme.cardColor,
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        content: Text(
+          message,
+          style: TextStyle(color: theme.colorScheme.onSurface),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'OK',
+              style: TextStyle(color: theme.colorScheme.primary),
+            ),
+          ),
         ],
       ),
     );
