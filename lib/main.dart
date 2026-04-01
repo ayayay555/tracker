@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'models/bank.dart';
 import 'models/transaction.dart';
 import 'logic/transaction_manager.dart';
@@ -1274,8 +1275,9 @@ class _TransferPageState extends State<TransferPage>
     final theme = Theme.of(context);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: theme.cardColor,
+        surfaceTintColor: Colors.transparent,
         title: Text(
           title,
           style: TextStyle(
@@ -1285,14 +1287,19 @@ class _TransferPageState extends State<TransferPage>
         ),
         content: Text(
           message,
-          style: TextStyle(color: theme.colorScheme.onSurface),
+          style: TextStyle(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+          ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'OK',
-              style: TextStyle(color: theme.colorScheme.primary),
+              style: TextStyle(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -1432,6 +1439,7 @@ class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   bool _isEditing = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -1439,6 +1447,17 @@ class _ProfilePageState extends State<ProfilePage> {
     _nameController = TextEditingController(text: widget.manager.username);
     _emailController = TextEditingController(text: widget.manager.email);
     _phoneController = TextEditingController(text: widget.manager.phoneNumber);
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      await widget.manager.setUserProfile(
+        name: widget.manager.username,
+        pic: image.path,
+      );
+      setState(() {});
+    }
   }
 
   @override
@@ -1506,55 +1525,61 @@ class _ProfilePageState extends State<ProfilePage> {
               Center(
                 child: Stack(
                   children: [
-                    Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.05,
+                    GestureDetector(
+                      onTap: _isEditing ? _pickImage : null,
+                      child: Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.05,
+                          ),
+                          image: widget.manager.profilePicturePath != null
+                              ? DecorationImage(
+                                  image: FileImage(
+                                    File(widget.manager.profilePicturePath!),
+                                  ),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                          border: Border.all(
+                            color: theme.colorScheme.primary,
+                            width: 4,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.primaryColor.withValues(alpha: 0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
-                        image: widget.manager.profilePicturePath != null
-                            ? DecorationImage(
-                                image: FileImage(
-                                  File(widget.manager.profilePicturePath!),
+                        child: widget.manager.profilePicturePath == null
+                            ? Icon(
+                                Icons.person_rounded,
+                                size: 60,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
                                 ),
-                                fit: BoxFit.cover,
                               )
                             : null,
-                        border: Border.all(
-                          color: theme.colorScheme.primary,
-                          width: 4,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.primaryColor.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
                       ),
-                      child: widget.manager.profilePicturePath == null
-                          ? Icon(
-                              Icons.person_rounded,
-                              size: 60,
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.5,
-                              ),
-                            )
-                          : null,
                     ),
                     if (_isEditing)
                       Positioned(
                         bottom: 0,
                         right: 0,
-                        child: CircleAvatar(
-                          backgroundColor: theme.colorScheme.secondary,
-                          radius: 22,
-                          child: const Icon(
-                            Icons.camera_alt_rounded,
-                            size: 20,
-                            color: Colors.white,
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: CircleAvatar(
+                            backgroundColor: theme.colorScheme.secondary,
+                            radius: 22,
+                            child: const Icon(
+                              Icons.camera_alt_rounded,
+                              size: 20,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -2094,6 +2119,9 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
               prefixText: '₱ ',
               border: InputBorder.none,
               hintText: '0.00',
+              hintStyle: TextStyle(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+              ),
               prefixStyle: TextStyle(
                 fontSize: 32,
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
@@ -2246,13 +2274,36 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
   }
 
   void _showWarning(String title, String message) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Text(message),
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: theme.cardColor,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        content: Text(
+          message,
+          style: TextStyle(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+          ),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'OK',
+              style: TextStyle(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ],
       ),
     );
