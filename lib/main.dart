@@ -76,9 +76,10 @@ class _CurlAppState extends State<CurlApp> {
           primaryColor: const Color(0xFFFFD93D),
           colorScheme: const ColorScheme.dark(
             primary: Color(0xFFFFD93D),
-            secondary: Color(0xFF2C2C2E),
+            secondary: Colors.white,
             surface: Color(0xFF1E1E1E),
             onSurface: Colors.white,
+            onSecondary: Color(0xFF121212),
           ),
           cardColor: const Color(0xFF1E1E1E),
         );
@@ -629,8 +630,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: _isTransactionsExpanded
                               ? widget.manager.transactions.length
-                              : (widget.manager.transactions.length > 3
-                                  ? 3
+                              : (widget.manager.transactions.length > 1
+                                  ? 1
                                   : widget.manager.transactions.length),
                           itemBuilder: (context, index) => _transactionTile(
                             widget.manager.transactions[index],
