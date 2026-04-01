@@ -3,19 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:device_preview/device_preview.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'models/bank.dart';
 import 'models/transaction.dart';
 import 'logic/transaction_manager.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Enable immersive fullscreen mode
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  
+
   runApp(
     DevicePreview(
-      enabled: kIsWeb && ![TargetPlatform.android, TargetPlatform.iOS].contains(defaultTargetPlatform),
+      enabled:
+          kIsWeb &&
+          ![
+            TargetPlatform.android,
+            TargetPlatform.iOS,
+          ].contains(defaultTargetPlatform),
       builder: (context) => const CurlApp(),
     ),
   );
@@ -46,43 +50,59 @@ class _CurlAppState extends State<CurlApp> {
   }
 
   ThemeData _getTheme(AppThemeMode mode, BuildContext context) {
+    final baseTheme = ThemeData(
+      useMaterial3: true,
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(),
+    );
+
     switch (mode) {
       case AppThemeMode.banana:
-        return ThemeData(
+        return baseTheme.copyWith(
           brightness: Brightness.light,
-          scaffoldBackgroundColor: const Color(0xFFFFFBE6),
+          scaffoldBackgroundColor: const Color(0xFFF9F9F9),
           primaryColor: const Color(0xFFFFD93D),
           colorScheme: const ColorScheme.light(
             primary: Color(0xFFFFD93D),
-            secondary: Color(0xFF4E3629),
+            secondary: Color(0xFF2C2C2E),
             surface: Colors.white,
-            onSurface: Color(0xFF4E3629),
+            onSurface: Color(0xFF2C2C2E),
           ),
-          textTheme: const TextTheme(
-            displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Color(0xFF4E3629)),
-            titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF4E3629)),
-          ),
+          cardColor: Colors.white,
         );
       case AppThemeMode.dark:
-        return ThemeData(
+        return baseTheme.copyWith(
           brightness: Brightness.dark,
-          scaffoldBackgroundColor: const Color(0xFF1A1A1A),
+          scaffoldBackgroundColor: const Color(0xFF121212),
           primaryColor: const Color(0xFFFFD93D),
           colorScheme: const ColorScheme.dark(
             primary: Color(0xFFFFD93D),
-            secondary: Colors.white70,
-            surface: Color(0xFF2D2D2D),
+            secondary: Color(0xFF2C2C2E),
+            surface: Color(0xFF1E1E1E),
+            onSurface: Colors.white,
           ),
+          cardColor: const Color(0xFF1E1E1E),
         );
       case AppThemeMode.system:
-        return ThemeData.light(); // Default system
+        return baseTheme.copyWith(
+          brightness: Brightness.light,
+          scaffoldBackgroundColor: const Color(0xFFF2F2F7),
+          primaryColor: const Color(0xFF007AFF),
+          colorScheme: const ColorScheme.light(
+            primary: Color(0xFF007AFF),
+            secondary: Color(0xFF1C1C1E),
+            surface: Colors.white,
+          ),
+          cardColor: Colors.white,
+        );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const MaterialApp(home: Scaffold(body: Center(child: CircularProgressIndicator())));
+      return const MaterialApp(
+        home: Scaffold(body: Center(child: CircularProgressIndicator())),
+      );
     }
 
     return MaterialApp(
@@ -92,16 +112,27 @@ class _CurlAppState extends State<CurlApp> {
       title: 'Curl',
       debugShowCheckedModeBanner: false,
       theme: _getTheme(_manager.themeMode, context),
-      home: _manager.username.isEmpty 
-          ? OnboardingScreen(manager: _manager, onComplete: () => setState(() {}))
-          : MainNavigation(manager: _manager),
+      home: _manager.username.isEmpty
+          ? OnboardingScreen(
+              manager: _manager,
+              onComplete: () => setState(() {}),
+            )
+          : MainNavigation(
+              manager: _manager,
+              onThemeChange: () => setState(() {}),
+            ),
     );
   }
 }
 
 class MainNavigation extends StatefulWidget {
   final TransactionManager manager;
-  const MainNavigation({super.key, required this.manager});
+  final VoidCallback onThemeChange;
+  const MainNavigation({
+    super.key,
+    required this.manager,
+    required this.onThemeChange,
+  });
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
@@ -118,7 +149,10 @@ class _MainNavigationState extends State<MainNavigation> {
     _screens = [
       HomeScreen(manager: widget.manager),
       TransferPage(manager: widget.manager),
-      SettingsPage(manager: widget.manager, onThemeChange: () => setState(() {})),
+      SettingsPage(
+        manager: widget.manager,
+        onThemeChange: widget.onThemeChange,
+      ),
       ProfilePage(manager: widget.manager),
     ];
   }
@@ -126,24 +160,52 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Scaffold(
-      body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Theme.of(context).cardColor,
-        selectedItemColor: colorScheme.primary,
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.swap_horiz_rounded), label: 'Transfer'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Settings'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
-        ],
+      body: IndexedStack(index: _currentIndex, children: _screens),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Theme.of(context).cardColor,
+          selectedItemColor: colorScheme.secondary,
+          unselectedItemColor: Colors.grey.withOpacity(0.5),
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home_rounded),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.swap_horiz_outlined),
+              activeIcon: Icon(Icons.swap_horiz_rounded),
+              label: 'Transfer',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings_outlined),
+              activeIcon: Icon(Icons.settings_rounded),
+              label: 'Settings',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person_rounded),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -172,7 +234,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final totalBalance = widget.manager.getTotalBalance();
-    
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
@@ -184,36 +247,117 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${_getGreeting()},', style: const TextStyle(fontSize: 16, color: Colors.grey)),
-                    Text(widget.manager.username, style: Theme.of(context).textTheme.displayLarge),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${_getGreeting()},',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.5,
+                                ),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              widget.manager.username,
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w900,
+                                color: theme.colorScheme.onSurface,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        CircleAvatar(
+                          backgroundColor: theme.colorScheme.primary
+                              .withOpacity(0.2),
+                          backgroundImage:
+                              widget.manager.profilePicturePath != null
+                              ? FileImage(
+                                  File(widget.manager.profilePicturePath!),
+                                )
+                              : null,
+                          child: widget.manager.profilePicturePath == null
+                              ? Icon(
+                                  Icons.person,
+                                  color: theme.colorScheme.primary,
+                                )
+                              : null,
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 32),
-                    
-                    // Balance Island
+
+                    // Premium Balance Island
                     Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(28),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.secondary,
+                        gradient: LinearGradient(
+                          colors: [
+                            theme.colorScheme.secondary,
+                            theme.colorScheme.secondary.withOpacity(0.8),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         borderRadius: BorderRadius.circular(32),
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10))
+                          BoxShadow(
+                            color: theme.colorScheme.secondary.withOpacity(0.3),
+                            blurRadius: 24,
+                            offset: const Offset(0, 12),
+                          ),
                         ],
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Total Balance', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                          const Text(
+                            'Total Balance',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             '₱${totalBalance.toStringAsFixed(2).replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]},")}',
-                            style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white),
+                            style: const TextStyle(
+                              fontSize: 40,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: -1,
+                            ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 32),
                           Row(
                             children: [
-                              _actionButton(context, 'Deposit', Icons.add_rounded, () => _showTransactionSheet(TransactionType.income)),
-                              const SizedBox(width: 12),
-                              _actionButton(context, 'Withdraw', Icons.remove_rounded, () => _showTransactionSheet(TransactionType.expense)),
+                              _actionButton(
+                                context,
+                                'Deposit',
+                                Icons.arrow_downward_rounded,
+                                () => _showTransactionSheet(
+                                  TransactionType.income,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              _actionButton(
+                                context,
+                                'Withdraw',
+                                Icons.arrow_upward_rounded,
+                                () => _showTransactionSheet(
+                                  TransactionType.expense,
+                                ),
+                              ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -227,13 +371,19 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: GestureDetector(
-                  onTap: _showBudgetNoteDialog,
+                  onTap: _showBudgetModal,
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.black.withOpacity(0.05)),
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -241,25 +391,74 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Monthly Budget', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text('₱${widget.manager.getTotalMonthlyExpenses().toStringAsFixed(0)} / ₱${widget.manager.monthlyBudget.toStringAsFixed(0)}',
-                              style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                            Text(
+                              'Monthly Budget',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.2,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                '${widget.manager.budgetItems.length} items',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '₱${widget.manager.getTotalMonthlyExpenses().toStringAsFixed(0)} spent',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            Text(
+                              '₱${widget.manager.monthlyBudget.toStringAsFixed(0)} total',
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.5,
+                                ),
+                                fontSize: 12,
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 12),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: LinearProgressIndicator(
-                            value: (widget.manager.getTotalMonthlyExpenses() / widget.manager.monthlyBudget).clamp(0.0, 1.0),
-                            minHeight: 8,
-                            backgroundColor: Colors.black12,
-                            valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+                            value:
+                                (widget.manager.getTotalMonthlyExpenses() /
+                                        widget.manager.monthlyBudget)
+                                    .clamp(0.0, 1.0),
+                            minHeight: 10,
+                            backgroundColor: theme.colorScheme.onSurface
+                                .withOpacity(0.05),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              theme.primaryColor,
+                            ),
                           ),
                         ),
-                        if (widget.manager.budgetNote.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          Text(widget.manager.budgetNote, style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.black54)),
-                        ]
                       ],
                     ),
                   ),
@@ -267,31 +466,95 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Transactions Header
+            // Expandable Transactions Island
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Recent Activity', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                    TextButton(
-                      onPressed: () => setState(() => _isTransactionsExpanded = !_isTransactionsExpanded),
-                      child: Text(_isTransactionsExpanded ? 'Collapse' : 'See All'),
-                    )
-                  ],
+                padding: const EdgeInsets.all(24),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(32),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Recent Activity',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => setState(
+                              () => _isTransactionsExpanded =
+                                  !_isTransactionsExpanded,
+                            ),
+                            child: AnimatedRotation(
+                              turns: _isTransactionsExpanded ? 0.5 : 0,
+                              duration: const Duration(milliseconds: 300),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.05),
+                                ),
+                                child: Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      if (widget.manager.transactions.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Center(
+                            child: Text(
+                              'No transactions yet',
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _isTransactionsExpanded
+                              ? widget.manager.transactions.length
+                              : (widget.manager.transactions.length > 3
+                                    ? 3
+                                    : widget.manager.transactions.length),
+                          itemBuilder: (context, index) => _transactionTile(
+                            widget.manager.transactions[index],
+                            theme,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-
-            // Transactions List
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final tx = widget.manager.transactions[index];
-                  return _transactionTile(tx);
-                },
-                childCount: _isTransactionsExpanded ? widget.manager.transactions.length : (widget.manager.transactions.length > 5 ? 5 : widget.manager.transactions.length),
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 40)),
@@ -301,58 +564,106 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _actionButton(BuildContext context, String label, IconData icon, VoidCallback onTap) {
+  Widget _actionButton(
+    BuildContext context,
+    String label,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return Expanded(
-      child: ElevatedButton.icon(
-        onPressed: onTap,
-        icon: Icon(icon, size: 18),
-        label: Text(label),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white12,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _transactionTile(Transaction tx) {
+  Widget _transactionTile(Transaction tx, ThemeData theme) {
+    final isExpense = tx.type == TransactionType.expense;
+    final isTransfer = tx.type == TransactionType.transfer;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.black.withOpacity(0.05),
-              child: Icon(
-                tx.type == TransactionType.income ? Icons.arrow_downward_rounded : 
-                tx.type == TransactionType.expense ? Icons.arrow_upward_rounded : Icons.swap_horiz_rounded,
-                size: 18, color: Colors.black,
-              ),
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isTransfer
+                  ? Colors.blue.withOpacity(0.1)
+                  : (isExpense
+                        ? Colors.red.withOpacity(0.1)
+                        : Colors.green.withOpacity(0.1)),
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(tx.category, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text(tx.bankId.toUpperCase(), style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                ],
-              ),
+            child: Icon(
+              isTransfer
+                  ? Icons.swap_horiz_rounded
+                  : (isExpense
+                        ? Icons.shopping_bag_rounded
+                        : Icons.account_balance_wallet_rounded),
+              size: 20,
+              color: isTransfer
+                  ? Colors.blue
+                  : (isExpense ? Colors.red : Colors.green),
             ),
-            Text(
-              '${tx.type == TransactionType.expense ? "-" : "+"}₱${tx.amount.toStringAsFixed(2)}',
-              style: TextStyle(fontWeight: FontWeight.w900, color: tx.type == TransactionType.expense ? Colors.redAccent : Colors.green),
-            )
-          ],
-        ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tx.category,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                Text(
+                  tx.bankId.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '${isExpense
+                ? "-"
+                : isTransfer
+                ? ""
+                : "+"}₱${tx.amount.toStringAsFixed(0)}',
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -362,31 +673,218 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => TransactionInputSheet(manager: widget.manager, type: type),
+      builder: (context) =>
+          TransactionInputSheet(manager: widget.manager, type: type),
     ).then((_) => setState(() {}));
   }
 
-  void _showBudgetNoteDialog() {
-    final controller = TextEditingController(text: widget.manager.budgetNote);
-    showDialog(
+  void _showBudgetModal() {
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Budget Planning'),
-        content: TextField(
-          controller: controller,
-          maxLines: 3,
-          decoration: const InputDecoration(hintText: 'What are you planning for this month?'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              widget.manager.updateBudgetNote(controller.text);
-              Navigator.pop(context);
-              setState(() {});
-            },
-            child: const Text('Save'),
-          )
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BudgetPlannerSheet(manager: widget.manager),
+    ).then((_) => setState(() {}));
+  }
+}
+
+class BudgetPlannerSheet extends StatefulWidget {
+  final TransactionManager manager;
+  const BudgetPlannerSheet({super.key, required this.manager});
+
+  @override
+  State<BudgetPlannerSheet> createState() => _BudgetPlannerSheetState();
+}
+
+class _BudgetPlannerSheetState extends State<BudgetPlannerSheet> {
+  late List<Map<String, dynamic>> _items;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _items = List.from(widget.manager.budgetItems);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurface.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Budget Planner',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          Expanded(
+            child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              itemCount: _items.length,
+              itemBuilder: (context, index) {
+                final item = _items[index];
+                return Dismissible(
+                  key: Key(item['name'] + index.toString()),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.delete_rounded,
+                      color: Colors.white,
+                    ),
+                  ),
+                  onDismissed: (_) => setState(() => _items.removeAt(index)),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.onSurface.withOpacity(0.03),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          item['name'],
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          '₱${item['amount'].toStringAsFixed(0)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Add New Item
+          Container(
+            padding: EdgeInsets.only(bottom: bottomInset + 24, top: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      hintText: 'Item (e.g. Rent)',
+                      filled: true,
+                      fillColor: theme.colorScheme.onSurface.withOpacity(0.05),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 1,
+                  child: TextField(
+                    controller: _amountController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: 'Amount',
+                      filled: true,
+                      fillColor: theme.colorScheme.onSurface.withOpacity(0.05),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    final amount = double.tryParse(_amountController.text);
+                    if (_nameController.text.isNotEmpty && amount != null) {
+                      setState(() {
+                        _items.add({
+                          'name': _nameController.text,
+                          'amount': amount,
+                        });
+                        _nameController.clear();
+                        _amountController.clear();
+                      });
+                    }
+                  },
+                  child: Container(
+                    height: 56,
+                    width: 56,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.add_rounded, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(
+            width: double.infinity,
+            height: 60,
+            child: ElevatedButton(
+              onPressed: () {
+                widget.manager.updateBudgetItems(_items);
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.secondary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: const Text(
+                'Save Plan',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -401,14 +899,20 @@ class TransferPage extends StatefulWidget {
   State<TransferPage> createState() => _TransferPageState();
 }
 
-class _TransferPageState extends State<TransferPage> {
+class _TransferPageState extends State<TransferPage>
+    with SingleTickerProviderStateMixin {
   String? fromBankId;
   String? toBankId;
   final TextEditingController _amountController = TextEditingController();
+  late AnimationController _animController;
 
   @override
   void initState() {
     super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
     if (widget.manager.userBankIds.isNotEmpty) {
       fromBankId = widget.manager.userBankIds.first;
       if (widget.manager.userBankIds.length > 1) {
@@ -418,6 +922,7 @@ class _TransferPageState extends State<TransferPage> {
   }
 
   void _swapBanks() {
+    _animController.forward(from: 0);
     setState(() {
       final temp = fromBankId;
       fromBankId = toBankId;
@@ -427,73 +932,208 @@ class _TransferPageState extends State<TransferPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Transfer'), elevation: 0),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            _bankSelector('From', fromBankId, (val) => setState(() => fromBankId = val)),
-            const SizedBox(height: 8),
-            IconButton(
-              onPressed: _swapBanks,
-              icon: const Icon(Icons.swap_vert_rounded, size: 32),
-              color: Theme.of(context).primaryColor,
-            ),
-            const SizedBox(height: 8),
-            _bankSelector('To', toBankId, (val) => setState(() => toBankId = val)),
-            const SizedBox(height: 40),
-            TextField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-              decoration: const InputDecoration(
-                prefixText: '₱',
-                labelText: 'Amount',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: _performTransfer,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.secondary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              Text(
+                'Transfer',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  color: theme.colorScheme.onSurface,
+                  letterSpacing: -0.5,
                 ),
-                child: const Text('Transfer Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
-            )
-          ],
+              const SizedBox(height: 40),
+
+              // Sleek Card Container for Transfer
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _bankSelectorCard(
+                      theme,
+                      'Send from',
+                      fromBankId,
+                      (val) => setState(() => fromBankId = val),
+                    ),
+
+                    // Floating Animated Swap
+                    Transform.translate(
+                      offset: const Offset(0, 0),
+                      child: RotationTransition(
+                        turns: Tween(begin: 0.0, end: 0.5).animate(
+                          CurvedAnimation(
+                            parent: _animController,
+                            curve: Curves.easeInOut,
+                          ),
+                        ),
+                        child: GestureDetector(
+                          onTap: _swapBanks,
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: theme.primaryColor.withOpacity(0.4),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.swap_vert_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    _bankSelectorCard(
+                      theme,
+                      'Receive in',
+                      toBankId,
+                      (val) => setState(() => toBankId = val),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 40),
+              Text(
+                'Amount',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurface.withOpacity(0.03),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: TextField(
+                  controller: _amountController,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w900,
+                  ),
+                  decoration: const InputDecoration(
+                    prefixText: '₱ ',
+                    border: InputBorder.none,
+                    hintText: '0.00',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              SizedBox(
+                width: double.infinity,
+                height: 64,
+                child: ElevatedButton(
+                  onPressed: _performTransfer,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.secondary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    elevation: 10,
+                    shadowColor: theme.colorScheme.secondary.withOpacity(0.3),
+                  ),
+                  child: const Text(
+                    'Confirm Transfer',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _bankSelector(String label, String? selectedId, Function(String?) onChanged) {
+  Widget _bankSelectorCard(
+    ThemeData theme,
+    String label,
+    String? selectedId,
+    Function(String?) onChanged,
+  ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black12),
+        color: theme.colorScheme.onSurface.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-          DropdownButton<String>(
-            value: selectedId,
-            isExpanded: true,
-            underline: const SizedBox(),
-            items: widget.manager.userBankIds.map((id) {
-              final bank = Bank.phBanks.firstWhere((b) => b.id == id, orElse: () => Bank(id: id, name: id.toUpperCase(), type: BankType.traditional));
-              return DropdownMenuItem(value: id, child: Text(bank.name));
-            }).toList(),
-            onChanged: onChanged,
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedId,
+              isExpanded: true,
+              icon: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: theme.colorScheme.onSurface,
+              ),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onSurface,
+                fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+              ),
+              items: widget.manager.userBankIds.map((id) {
+                final bank = Bank.phBanks.firstWhere(
+                  (b) => b.id == id,
+                  orElse: () => Bank(
+                    id: id,
+                    name: id.toUpperCase(),
+                    type: BankType.traditional,
+                  ),
+                );
+                return DropdownMenuItem(value: id, child: Text(bank.name));
+              }).toList(),
+              onChanged: onChanged,
+            ),
           ),
         ],
       ),
@@ -502,7 +1142,10 @@ class _TransferPageState extends State<TransferPage> {
 
   void _performTransfer() {
     final amount = double.tryParse(_amountController.text) ?? 0;
-    if (amount > 0 && fromBankId != null && toBankId != null && fromBankId != toBankId) {
+    if (amount > 0 &&
+        fromBankId != null &&
+        toBankId != null &&
+        fromBankId != toBankId) {
       final tx = Transaction(
         bankId: fromBankId!,
         targetBankId: toBankId!,
@@ -513,7 +1156,13 @@ class _TransferPageState extends State<TransferPage> {
       );
       widget.manager.addTransaction(tx);
       _amountController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transfer Successful!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Transfer Successful!'),
+          behavior: SnackBarBehavior.floating,
+          shape: StadiumBorder(),
+        ),
+      );
     }
   }
 }
@@ -521,32 +1170,113 @@ class _TransferPageState extends State<TransferPage> {
 class SettingsPage extends StatelessWidget {
   final TransactionManager manager;
   final VoidCallback onThemeChange;
-  const SettingsPage({super.key, required this.manager, required this.onThemeChange});
+  const SettingsPage({
+    super.key,
+    required this.manager,
+    required this.onThemeChange,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings'), elevation: 0),
-      body: ListView(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(24.0),
-            child: Text('Appearance', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-          ),
-          _themeOption(context, 'Banana Yellow', AppThemeMode.banana, Icons.wb_sunny_rounded),
-          _themeOption(context, 'Dark Mode', AppThemeMode.dark, Icons.nightlight_round),
-          _themeOption(context, 'System Default', AppThemeMode.system, Icons.settings_brightness_rounded),
-        ],
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            const SizedBox(height: 16),
+            Text(
+              'Settings',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
+                color: theme.colorScheme.onSurface,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 40),
+
+            Text(
+              'Appearance',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface.withOpacity(0.5),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.02),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _themeOption(
+                    context,
+                    'Banana Yellow',
+                    AppThemeMode.banana,
+                    const Color(0xFFFFD93D),
+                  ),
+                  Divider(
+                    height: 1,
+                    color: theme.colorScheme.onSurface.withOpacity(0.05),
+                  ),
+                  _themeOption(
+                    context,
+                    'System Default',
+                    AppThemeMode.system,
+                    Colors.blue,
+                  ),
+                  Divider(
+                    height: 1,
+                    color: theme.colorScheme.onSurface.withOpacity(0.05),
+                  ),
+                  _themeOption(
+                    context,
+                    'Dark Mode',
+                    AppThemeMode.dark,
+                    const Color(0xFF2C2C2E),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _themeOption(BuildContext context, String title, AppThemeMode mode, IconData icon) {
+  Widget _themeOption(
+    BuildContext context,
+    String title,
+    AppThemeMode mode,
+    Color color,
+  ) {
     final isSelected = manager.themeMode == mode;
+    final theme = Theme.of(context);
+
     return ListTile(
-      leading: Icon(icon, color: isSelected ? Theme.of(context).primaryColor : Colors.grey),
-      title: Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-      trailing: isSelected ? Icon(Icons.check_circle, color: Theme.of(context).primaryColor) : null,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      leading: CircleAvatar(backgroundColor: color, radius: 16),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+          color: theme.colorScheme.onSurface,
+        ),
+      ),
+      trailing: isSelected
+          ? Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary)
+          : null,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       onTap: () {
         manager.setTheme(mode);
         onThemeChange();
@@ -579,81 +1309,189 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              if (_isEditing) {
-                widget.manager.setUserProfile(
-                  name: _nameController.text,
-                  mail: _emailController.text,
-                  phone: _phoneController.text,
-                );
-              }
-              setState(() => _isEditing = !_isEditing);
-            },
-            icon: Icon(_isEditing ? Icons.check_rounded : Icons.edit_rounded),
-          )
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Center(
-              child: Stack(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.black12,
-                      image: widget.manager.profilePicturePath != null 
-                        ? DecorationImage(image: FileImage(File(widget.manager.profilePicturePath!)), fit: BoxFit.cover)
-                        : null,
+                  Text(
+                    'Profile',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      color: theme.colorScheme.onSurface,
+                      letterSpacing: -0.5,
                     ),
-                    child: widget.manager.profilePicturePath == null ? const Icon(Icons.person, size: 60, color: Colors.white) : null,
                   ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: CircleAvatar(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      radius: 18,
-                      child: const Icon(Icons.camera_alt_rounded, size: 18, color: Colors.white),
+                  GestureDetector(
+                    onTap: () {
+                      if (_isEditing) {
+                        widget.manager.setUserProfile(
+                          name: _nameController.text,
+                          mail: _emailController.text,
+                          phone: _phoneController.text,
+                        );
+                      }
+                      setState(() => _isEditing = !_isEditing);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _isEditing
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurface.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _isEditing ? 'Save' : 'Edit',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: _isEditing
+                              ? Colors.white
+                              : theme.colorScheme.onSurface,
+                        ),
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 40),
-            _infoField('Name', _nameController),
-            _infoField('Email', _emailController),
-            _infoField('Phone', _phoneController),
-          ],
+              const SizedBox(height: 40),
+
+              Center(
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: theme.colorScheme.onSurface.withOpacity(0.05),
+                        image: widget.manager.profilePicturePath != null
+                            ? DecorationImage(
+                                image: FileImage(
+                                  File(widget.manager.profilePicturePath!),
+                                ),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                        border: Border.all(
+                          color: theme.colorScheme.primary,
+                          width: 4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.primaryColor.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: widget.manager.profilePicturePath == null
+                          ? Icon(
+                              Icons.person_rounded,
+                              size: 60,
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.5,
+                              ),
+                            )
+                          : null,
+                    ),
+                    if (_isEditing)
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: CircleAvatar(
+                          backgroundColor: theme.colorScheme.secondary,
+                          radius: 22,
+                          child: const Icon(
+                            Icons.camera_alt_rounded,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _infoField(theme, 'Full Name', _nameController),
+                    Divider(
+                      height: 32,
+                      color: theme.colorScheme.onSurface.withOpacity(0.05),
+                    ),
+                    _infoField(theme, 'Email Address', _emailController),
+                    Divider(
+                      height: 32,
+                      color: theme.colorScheme.onSurface.withOpacity(0.05),
+                    ),
+                    _infoField(theme, 'Phone Number', _phoneController),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _infoField(String label, TextEditingController controller) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-          TextField(
-            controller: controller,
-            enabled: _isEditing,
-            decoration: const InputDecoration(border: UnderlineInputBorder()),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+  Widget _infoField(
+    ThemeData theme,
+    String label,
+    TextEditingController controller,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: theme.colorScheme.onSurface.withOpacity(0.5),
+            fontWeight: FontWeight.bold,
           ),
-        ],
-      ),
+        ),
+        TextField(
+          controller: controller,
+          enabled: _isEditing,
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+            isDense: true,
+            contentPadding: EdgeInsets.only(top: 8),
+          ),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -663,7 +1501,11 @@ class _ProfilePageState extends State<ProfilePage> {
 class OnboardingScreen extends StatefulWidget {
   final TransactionManager manager;
   final VoidCallback onComplete;
-  const OnboardingScreen({super.key, required this.manager, required this.onComplete});
+  const OnboardingScreen({
+    super.key,
+    required this.manager,
+    required this.onComplete,
+  });
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -672,14 +1514,17 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _step = 0;
-  
+
   final TextEditingController _nameController = TextEditingController();
   final List<String> _selectedBanks = [];
   AppThemeMode _selectedTheme = AppThemeMode.banana;
 
   void _next() {
     if (_step < 2) {
-      _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.fastOutSlowIn,
+      );
       setState(() => _step++);
     } else {
       widget.manager.setUserProfile(name: _nameController.text);
@@ -691,8 +1536,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -701,28 +1547,38 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  _welcomeStep(),
-                  _bankStep(),
-                  _themeStep(),
+                  _welcomeStep(theme),
+                  _bankStep(theme),
+                  _themeStep(theme),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(32.0),
               child: SizedBox(
                 width: double.infinity,
-                height: 60,
+                height: 64,
                 child: ElevatedButton(
                   onPressed: _canGoNext() ? _next : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2D3436),
+                    backgroundColor: theme.colorScheme.secondary,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    elevation: 10,
+                    shadowColor: theme.colorScheme.secondary.withOpacity(0.3),
                   ),
-                  child: Text(_step == 2 ? 'Let\'s Go!' : 'Next', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    _step == 2 ? 'Get Started' : 'Continue',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -735,101 +1591,269 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return true;
   }
 
-  Widget _welcomeStep() {
+  Widget _welcomeStep(ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.all(32.0),
+      padding: const EdgeInsets.all(40.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('img/mascot.png', height: 200),
-          const SizedBox(height: 40),
-          const Text('What should we call you?', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _nameController,
-            textAlign: TextAlign.center,
-            decoration: InputDecoration(
-              hintText: 'Enter Username',
-              filled: true,
-              fillColor: Colors.black.withOpacity(0.05),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.colorScheme.primary.withOpacity(0.2),
             ),
-            onChanged: (_) => setState(() {}),
+            child: Image.asset('img/newmascot.png', height: 160),
+          ),
+          const SizedBox(height: 48),
+          Text(
+            'Welcome to Curl',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.onSurface,
+              letterSpacing: -1,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Your premium financial companion.',
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 48),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onSurface.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: TextField(
+              controller: _nameController,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              decoration: const InputDecoration(
+                hintText: 'What should we call you?',
+                border: InputBorder.none,
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _bankStep() {
+  Widget _bankStep(ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.all(32.0),
+      padding: const EdgeInsets.fromLTRB(32, 48, 32, 0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Select your Banks', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 12),
-          const Text('Which one do you use frequently?', style: TextStyle(color: Colors.grey)),
+          Text(
+            'Select Banks',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.onSurface,
+              letterSpacing: -1,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Choose the accounts you use regularly.',
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              fontSize: 16,
+            ),
+          ),
           const SizedBox(height: 32),
           Expanded(
             child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
               itemCount: Bank.phBanks.length,
               itemBuilder: (context, index) {
                 final bank = Bank.phBanks[index];
                 final isSelected = _selectedBanks.contains(bank.id);
-                return ListTile(
-                  title: Text(bank.name, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-                  trailing: Icon(isSelected ? Icons.check_circle : Icons.circle_outlined, color: isSelected ? const Color(0xFF2D3436) : Colors.grey),
+                return GestureDetector(
                   onTap: () {
                     setState(() {
-                      if (isSelected) _selectedBanks.remove(bank.id);
-                      else _selectedBanks.add(bank.id);
+                      if (isSelected)
+                        _selectedBanks.remove(bank.id);
+                      else
+                        _selectedBanks.add(bank.id);
                     });
                   },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface.withOpacity(0.03),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: theme.primaryColor.withOpacity(0.4),
+                                blurRadius: 16,
+                                offset: const Offset(0, 8),
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isSelected
+                              ? Icons.check_circle_rounded
+                              : Icons.circle_outlined,
+                          color: isSelected
+                              ? Colors.white
+                              : theme.colorScheme.onSurface.withOpacity(0.3),
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          bank.name,
+                          style: TextStyle(
+                            fontWeight: isSelected
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                            fontSize: 16,
+                            color: isSelected
+                                ? Colors.white
+                                : theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _themeStep() {
+  Widget _themeStep(ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.all(32.0),
+      padding: const EdgeInsets.fromLTRB(32, 48, 32, 0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Pick a Theme', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+          Text(
+            'Choose Theme',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.onSurface,
+              letterSpacing: -1,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Pick a vibe that suits you best.',
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              fontSize: 16,
+            ),
+          ),
           const SizedBox(height: 40),
-          _themeCard('Banana', 'Vibrant & Yellow', AppThemeMode.banana, const Color(0xFFFFD93D)),
-          _themeCard('System', 'Match your device', AppThemeMode.system, Colors.blueGrey),
-          _themeCard('Dark', 'Easy on the eyes', AppThemeMode.dark, const Color(0xFF1A1A1A)),
+          _themeCard(
+            theme,
+            'Banana',
+            'Vibrant & Yellow',
+            AppThemeMode.banana,
+            const Color(0xFFFFD93D),
+          ),
+          _themeCard(
+            theme,
+            'System',
+            'Clean & Minimal',
+            AppThemeMode.system,
+            Colors.blue,
+          ),
+          _themeCard(
+            theme,
+            'Dark Mode',
+            'Easy on the eyes',
+            AppThemeMode.dark,
+            const Color(0xFF2C2C2E),
+          ),
         ],
       ),
     );
   }
 
-  Widget _themeCard(String title, String desc, AppThemeMode mode, Color color) {
+  Widget _themeCard(
+    ThemeData theme,
+    String title,
+    String desc,
+    AppThemeMode mode,
+    Color color,
+  ) {
     final isSelected = _selectedTheme == mode;
     return GestureDetector(
       onTap: () => setState(() => _selectedTheme = mode),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          border: Border.all(color: isSelected ? color : Colors.black12, width: 2),
-          borderRadius: BorderRadius.circular(20),
+          color: theme.cardColor,
+          border: Border.all(
+            color: isSelected ? color : Colors.transparent,
+            width: 3,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            CircleAvatar(backgroundColor: color, radius: 10),
-            const SizedBox(width: 16),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(desc, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-            ])),
-            if (isSelected) Icon(Icons.check_circle, color: color),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: color, width: 2),
+              ),
+              child: CircleAvatar(backgroundColor: color, radius: 12),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    desc,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_circle_rounded, color: color, size: 28),
           ],
         ),
       ),
@@ -840,7 +1864,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 class TransactionInputSheet extends StatefulWidget {
   final TransactionManager manager;
   final TransactionType type;
-  const TransactionInputSheet({super.key, required this.manager, required this.type});
+  const TransactionInputSheet({
+    super.key,
+    required this.manager,
+    required this.type,
+  });
 
   @override
   State<TransactionInputSheet> createState() => _TransactionInputSheetState();
@@ -850,7 +1878,15 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
   final TextEditingController _amountController = TextEditingController();
   String? _selectedBankId;
   String _selectedCategory = 'Food';
-  final List<String> _categories = ['Food', 'Transport', 'Bills', 'Shopping', 'Others', 'Salary', 'Gift'];
+  final List<String> _categories = [
+    'Food',
+    'Transport',
+    'Bills',
+    'Shopping',
+    'Others',
+    'Salary',
+    'Gift',
+  ];
 
   @override
   void initState() {
@@ -862,71 +1898,179 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 32,
+        right: 32,
+        top: 24,
+      ),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.type == TransactionType.income ? 'Deposit' : 'Withdraw', 
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 24),
+          Center(
+            child: Container(
+              width: 48,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurface.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            widget.type == TransactionType.income ? 'Deposit' : 'Withdraw',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.onSurface,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 32),
+
           TextField(
             controller: _amountController,
             autofocus: true,
             keyboardType: TextInputType.number,
-            style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-            decoration: const InputDecoration(prefixText: '₱', border: InputBorder.none, hintText: '0.00'),
+            style: TextStyle(
+              fontSize: 48,
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.onSurface,
+            ),
+            decoration: InputDecoration(
+              prefixText: '₱ ',
+              border: InputBorder.none,
+              hintText: '0.00',
+              prefixStyle: TextStyle(
+                fontSize: 32,
+                color: theme.colorScheme.onSurface.withOpacity(0.5),
+              ),
+            ),
           ),
-          const SizedBox(height: 24),
-          const Text('Bank', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 32),
+
+          Text(
+            'Select Bank',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ),
           const SizedBox(height: 12),
           Wrap(
-            spacing: 8,
+            spacing: 12,
+            runSpacing: 12,
             children: widget.manager.userBankIds.map((id) {
               final isSelected = _selectedBankId == id;
-              return ChoiceChip(
-                label: Text(id.toUpperCase()),
-                selected: isSelected,
-                onSelected: (_) => setState(() => _selectedBankId = id),
+              return GestureDetector(
+                onTap: () => setState(() => _selectedBankId = id),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    id.toUpperCase(),
+                    style: TextStyle(
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white
+                          : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
               );
             }).toList(),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
+
           if (widget.type == TransactionType.expense) ...[
-            const Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+            Text(
+              'Category',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: theme.colorScheme.onSurface.withOpacity(0.5),
+              ),
+            ),
             const SizedBox(height: 12),
             Wrap(
-              spacing: 8,
+              spacing: 12,
+              runSpacing: 12,
               children: _categories.map((cat) {
                 final isSelected = _selectedCategory == cat;
-                return ChoiceChip(
-                  label: Text(cat),
-                  selected: isSelected,
-                  onSelected: (_) => setState(() => _selectedCategory = cat),
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedCategory = cat),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? theme.colorScheme.secondary
+                          : theme.colorScheme.onSurface.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      cat,
+                      style: TextStyle(
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w600,
+                        color: isSelected
+                            ? Colors.white
+                            : theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
                 );
               }).toList(),
             ),
           ],
-          const SizedBox(height: 40),
+          const SizedBox(height: 48),
+
           SizedBox(
             width: double.infinity,
-            height: 60,
+            height: 64,
             child: ElevatedButton(
               onPressed: _save,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2D3436),
+                backgroundColor: theme.colorScheme.secondary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                elevation: 10,
+                shadowColor: theme.colorScheme.secondary.withOpacity(0.3),
               ),
-              child: const Text('Save Transaction', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Save Log',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -938,7 +2082,9 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
       final tx = Transaction(
         bankId: _selectedBankId!,
         amount: amount,
-        category: widget.type == TransactionType.income ? 'Deposit' : _selectedCategory,
+        category: widget.type == TransactionType.income
+            ? 'Deposit'
+            : _selectedCategory,
         type: widget.type,
         date: DateTime.now(),
       );

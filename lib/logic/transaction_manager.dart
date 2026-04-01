@@ -8,7 +8,7 @@ class TransactionManager {
   List<Transaction> _transactions = [];
   List<String> _userBankIds = [];
   double monthlyBudget = 20000.0;
-  String budgetNote = '';
+  List<Map<String, dynamic>> budgetItems = [];
   Map<String, double> categoryBudgets = {};
   
   // User Profile
@@ -23,7 +23,7 @@ class TransactionManager {
   static const String _storageKey = 'curl_transactions';
   static const String _banksKey = 'curl_user_banks';
   static const String _budgetKey = 'curl_budget';
-  static const String _budgetNoteKey = 'curl_budget_note';
+  static const String _budgetItemsKey = 'curl_budget_items';
   static const String _catBudgetKey = 'curl_cat_budgets';
   
   static const String _usernameKey = 'curl_username';
@@ -50,7 +50,12 @@ class TransactionManager {
 
     // Load Budgets
     monthlyBudget = prefs.getDouble(_budgetKey) ?? 20000.0;
-    budgetNote = prefs.getString(_budgetNoteKey) ?? '';
+    
+    final String? itemsData = prefs.getString(_budgetItemsKey);
+    if (itemsData != null) {
+      budgetItems = List<Map<String, dynamic>>.from(jsonDecode(itemsData));
+    }
+
     final String? catData = prefs.getString(_catBudgetKey);
     if (catData != null) {
       categoryBudgets = Map<String, double>.from(jsonDecode(catData));
@@ -73,10 +78,10 @@ class TransactionManager {
     await prefs.setDouble(_budgetKey, amount);
   }
 
-  Future<void> updateBudgetNote(String note) async {
-    budgetNote = note;
+  Future<void> updateBudgetItems(List<Map<String, dynamic>> items) async {
+    budgetItems = items;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_budgetNoteKey, note);
+    await prefs.setString(_budgetItemsKey, jsonEncode(items));
   }
 
   Future<void> updateCategoryBudget(String category, double amount) async {
@@ -137,7 +142,6 @@ class TransactionManager {
     await saveTransactions();
   }
 
-  // Filtered History
   List<Transaction> getTransactionsByBank(String bankId) {
     return _transactions.where((tx) => tx.bankId == bankId || tx.targetBankId == bankId).toList();
   }
@@ -157,7 +161,6 @@ class TransactionManager {
     return balance;
   }
 
-  // Analysis Features
   Map<String, double> getExpensesByCategory() {
     final Map<String, double> categories = {};
     for (final tx in _transactions.where((t) => t.type == TransactionType.expense)) {
