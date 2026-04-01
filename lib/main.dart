@@ -215,6 +215,12 @@ class _MainNavigationState extends State<MainNavigation> {
 
 // --- SCREENS ---
 
+ImageProvider? _getProfileImage(String? path) {
+  if (path == null) return null;
+  if (kIsWeb) return NetworkImage(path);
+  return FileImage(File(path));
+}
+
 class HomeScreen extends StatefulWidget {
   final TransactionManager manager;
   const HomeScreen({super.key, required this.manager});
@@ -357,12 +363,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           backgroundColor: theme.colorScheme.primary.withValues(
                             alpha: 0.2,
                           ),
-                          backgroundImage:
-                              widget.manager.profilePicturePath != null
-                                  ? FileImage(
-                                      File(widget.manager.profilePicturePath!),
-                                    )
-                                  : null,
+                          backgroundImage: _getProfileImage(
+                            widget.manager.profilePicturePath,
+                          ),
                           child: widget.manager.profilePicturePath == null
                               ? Icon(
                                   Icons.person,
@@ -1537,9 +1540,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           image: widget.manager.profilePicturePath != null
                               ? DecorationImage(
-                                  image: FileImage(
-                                    File(widget.manager.profilePicturePath!),
-                                  ),
+                                  image: _getProfileImage(
+                                    widget.manager.profilePicturePath,
+                                  )!,
                                   fit: BoxFit.cover,
                                 )
                               : null,
