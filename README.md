@@ -1,6 +1,6 @@
 # Curl: Minimalistic Financial Tracker (PH Edition) 🇵🇭
 
-![Curl Preview](img/mockup.png)
+![Curl Preview](img/mockups.png)
 
 A high-fidelity, minimalistic financial tracking application built with **Flutter**. Designed specifically for the Philippine market with a focus on speed, privacy, and a premium user experience.
 
