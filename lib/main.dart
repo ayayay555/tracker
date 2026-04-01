@@ -167,7 +167,7 @@ class _MainNavigationState extends State<MainNavigation> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -179,7 +179,7 @@ class _MainNavigationState extends State<MainNavigation> {
           type: BottomNavigationBarType.fixed,
           backgroundColor: Theme.of(context).cardColor,
           selectedItemColor: colorScheme.secondary,
-          unselectedItemColor: Colors.grey.withOpacity(0.5),
+          unselectedItemColor: Colors.grey.withValues(alpha: 0.5),
           showSelectedLabels: false,
           showUnselectedLabels: false,
           elevation: 0,
@@ -231,6 +231,83 @@ class _HomeScreenState extends State<HomeScreen> {
     return 'Good Evening';
   }
 
+  void _showBankBreakdown(BuildContext context, ThemeData theme) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 48,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              'Bank Breakdown',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: theme.colorScheme.onSurface,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ...widget.manager.userBankIds.map((id) {
+              final balance = widget.manager.getBankBalance(id);
+              final bank = Bank.phBanks.firstWhere(
+                (b) => b.id == id,
+                orElse: () => Bank(
+                  id: id,
+                  name: id.toUpperCase(),
+                  type: BankType.traditional,
+                ),
+              );
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      bank.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      '₱${balance.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final totalBalance = widget.manager.getTotalBalance();
@@ -257,8 +334,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               '${_getGreeting()},',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: theme.colorScheme.onSurface.withOpacity(
-                                  0.5,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
                                 ),
                                 fontWeight: FontWeight.w500,
                               ),
@@ -275,14 +352,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         CircleAvatar(
-                          backgroundColor: theme.colorScheme.primary
-                              .withOpacity(0.2),
+                          backgroundColor: theme.colorScheme.primary.withValues(
+                            alpha: 0.2,
+                          ),
                           backgroundImage:
                               widget.manager.profilePicturePath != null
-                              ? FileImage(
-                                  File(widget.manager.profilePicturePath!),
-                                )
-                              : null,
+                                  ? FileImage(
+                                      File(widget.manager.profilePicturePath!),
+                                    )
+                                  : null,
                           child: widget.manager.profilePicturePath == null
                               ? Icon(
                                   Icons.person,
@@ -295,70 +373,77 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 32),
 
                     // Premium Balance Island
-                    Container(
-                      padding: const EdgeInsets.all(28),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            theme.colorScheme.secondary,
-                            theme.colorScheme.secondary.withOpacity(0.8),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.colorScheme.secondary.withOpacity(0.3),
-                            blurRadius: 24,
-                            offset: const Offset(0, 12),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Total Balance',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '₱${totalBalance.toStringAsFixed(2).replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]},")}',
-                            style: const TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: -1,
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          Row(
-                            children: [
-                              _actionButton(
-                                context,
-                                'Deposit',
-                                Icons.arrow_downward_rounded,
-                                () => _showTransactionSheet(
-                                  TransactionType.income,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              _actionButton(
-                                context,
-                                'Withdraw',
-                                Icons.arrow_upward_rounded,
-                                () => _showTransactionSheet(
-                                  TransactionType.expense,
-                                ),
+                    GestureDetector(
+                      onTap: () => _showBankBreakdown(context, theme),
+                      child: Container(
+                        padding: const EdgeInsets.all(28),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              theme.colorScheme.secondary,
+                              theme.colorScheme.secondary.withValues(
+                                alpha: 0.8,
                               ),
                             ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                        ],
+                          borderRadius: BorderRadius.circular(32),
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colorScheme.secondary.withValues(
+                                alpha: 0.3,
+                              ),
+                              blurRadius: 24,
+                              offset: const Offset(0, 12),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Total Balance',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '₱${totalBalance.toStringAsFixed(2).replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]},")}',
+                              style: const TextStyle(
+                                fontSize: 40,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                letterSpacing: -1,
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            Row(
+                              children: [
+                                _actionButton(
+                                  context,
+                                  'Deposit',
+                                  Icons.arrow_downward_rounded,
+                                  () => _showTransactionSheet(
+                                    TransactionType.income,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                _actionButton(
+                                  context,
+                                  'Withdraw',
+                                  Icons.arrow_upward_rounded,
+                                  () => _showTransactionSheet(
+                                    TransactionType.expense,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -379,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
+                          color: Colors.black.withValues(alpha: 0.03),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -405,8 +490,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withOpacity(
-                                  0.2,
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.2,
                                 ),
                                 borderRadius: BorderRadius.circular(20),
                               ),
@@ -435,8 +520,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             Text(
                               '₱${widget.manager.monthlyBudget.toStringAsFixed(0)} total',
                               style: TextStyle(
-                                color: theme.colorScheme.onSurface.withOpacity(
-                                  0.5,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
                                 ),
                                 fontSize: 12,
                               ),
@@ -453,7 +538,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     .clamp(0.0, 1.0),
                             minHeight: 10,
                             backgroundColor: theme.colorScheme.onSurface
-                                .withOpacity(0.05),
+                                .withValues(alpha: 0.05),
                             valueColor: AlwaysStoppedAnimation<Color>(
                               theme.primaryColor,
                             ),
@@ -479,7 +564,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(32),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
+                        color: Colors.black.withValues(alpha: 0.03),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -512,7 +597,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: theme.colorScheme.onSurface
-                                      .withOpacity(0.05),
+                                      .withValues(alpha: 0.05),
                                 ),
                                 child: Icon(
                                   Icons.keyboard_arrow_down_rounded,
@@ -531,8 +616,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Text(
                               'No transactions yet',
                               style: TextStyle(
-                                color: theme.colorScheme.onSurface.withOpacity(
-                                  0.5,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
                                 ),
                               ),
                             ),
@@ -545,8 +630,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           itemCount: _isTransactionsExpanded
                               ? widget.manager.transactions.length
                               : (widget.manager.transactions.length > 3
-                                    ? 3
-                                    : widget.manager.transactions.length),
+                                  ? 3
+                                  : widget.manager.transactions.length),
                           itemBuilder: (context, index) => _transactionTile(
                             widget.manager.transactions[index],
                             theme,
@@ -576,7 +661,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            color: Colors.white.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
@@ -610,18 +695,18 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isTransfer
-                  ? Colors.blue.withOpacity(0.1)
+                  ? Colors.blue.withValues(alpha: 0.1)
                   : (isExpense
-                        ? Colors.red.withOpacity(0.1)
-                        : Colors.green.withOpacity(0.1)),
+                      ? Colors.red.withValues(alpha: 0.1)
+                      : Colors.green.withValues(alpha: 0.1)),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
               isTransfer
                   ? Icons.swap_horiz_rounded
                   : (isExpense
-                        ? Icons.shopping_bag_rounded
-                        : Icons.account_balance_wallet_rounded),
+                      ? Icons.shopping_bag_rounded
+                      : Icons.account_balance_wallet_rounded),
               size: 20,
               color: isTransfer
                   ? Colors.blue
@@ -645,18 +730,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   tx.bankId.toUpperCase(),
                   style: TextStyle(
                     fontSize: 12,
-                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                 ),
               ],
             ),
           ),
           Text(
-            '${isExpense
-                ? "-"
-                : isTransfer
-                ? ""
-                : "+"}₱${tx.amount.toStringAsFixed(0)}',
+            '${isExpense ? "-" : isTransfer ? "" : "+"}₱${tx.amount.toStringAsFixed(0)}',
             style: TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 16,
@@ -727,7 +808,7 @@ class _BudgetPlannerSheetState extends State<BudgetPlannerSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: theme.colorScheme.onSurface.withOpacity(0.1),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -769,7 +850,7 @@ class _BudgetPlannerSheetState extends State<BudgetPlannerSheet> {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.onSurface.withOpacity(0.03),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.03),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -809,7 +890,9 @@ class _BudgetPlannerSheetState extends State<BudgetPlannerSheet> {
                     decoration: InputDecoration(
                       hintText: 'Item (e.g. Rent)',
                       filled: true,
-                      fillColor: theme.colorScheme.onSurface.withOpacity(0.05),
+                      fillColor: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.05,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
@@ -826,7 +909,9 @@ class _BudgetPlannerSheetState extends State<BudgetPlannerSheet> {
                     decoration: InputDecoration(
                       hintText: 'Amount',
                       filled: true,
-                      fillColor: theme.colorScheme.onSurface.withOpacity(0.05),
+                      fillColor: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.05,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
@@ -961,7 +1046,7 @@ class _TransferPageState extends State<TransferPage>
                   borderRadius: BorderRadius.circular(32),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withValues(alpha: 0.03),
                       blurRadius: 24,
                       offset: const Offset(0, 12),
                     ),
@@ -996,7 +1081,9 @@ class _TransferPageState extends State<TransferPage>
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: theme.primaryColor.withOpacity(0.4),
+                                  color: theme.primaryColor.withValues(
+                                    alpha: 0.4,
+                                  ),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -1038,7 +1125,7 @@ class _TransferPageState extends State<TransferPage>
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withOpacity(0.03),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.03),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: TextField(
@@ -1069,7 +1156,9 @@ class _TransferPageState extends State<TransferPage>
                       borderRadius: BorderRadius.circular(24),
                     ),
                     elevation: 10,
-                    shadowColor: theme.colorScheme.secondary.withOpacity(0.3),
+                    shadowColor: theme.colorScheme.secondary.withValues(
+                      alpha: 0.3,
+                    ),
                   ),
                   child: const Text(
                     'Confirm Transfer',
@@ -1093,7 +1182,7 @@ class _TransferPageState extends State<TransferPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onSurface.withOpacity(0.04),
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -1103,7 +1192,7 @@ class _TransferPageState extends State<TransferPage>
             label,
             style: TextStyle(
               fontSize: 12,
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1142,6 +1231,10 @@ class _TransferPageState extends State<TransferPage>
 
   void _performTransfer() {
     final amount = double.tryParse(_amountController.text) ?? 0;
+    if (fromBankId != null && amount > widget.manager.getBankBalance(fromBankId!)) {
+      _showWarning('Insufficient Funds', 'You are transferring more than your current balance in this bank.');
+      return;
+    }
     if (amount > 0 &&
         fromBankId != null &&
         toBankId != null &&
@@ -1164,6 +1257,19 @@ class _TransferPageState extends State<TransferPage>
         ),
       );
     }
+  }
+
+  void _showWarning(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+        ],
+      ),
+    );
   }
 }
 
@@ -1201,7 +1307,7 @@ class SettingsPage extends StatelessWidget {
               'Appearance',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 16),
@@ -1211,7 +1317,7 @@ class SettingsPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
+                    color: Colors.black.withValues(alpha: 0.02),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -1227,7 +1333,7 @@ class SettingsPage extends StatelessWidget {
                   ),
                   Divider(
                     height: 1,
-                    color: theme.colorScheme.onSurface.withOpacity(0.05),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
                   ),
                   _themeOption(
                     context,
@@ -1237,7 +1343,7 @@ class SettingsPage extends StatelessWidget {
                   ),
                   Divider(
                     height: 1,
-                    color: theme.colorScheme.onSurface.withOpacity(0.05),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
                   ),
                   _themeOption(
                     context,
@@ -1349,7 +1455,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       decoration: BoxDecoration(
                         color: _isEditing
                             ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurface.withOpacity(0.05),
+                            : theme.colorScheme.onSurface.withValues(
+                                alpha: 0.05,
+                              ),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -1375,7 +1483,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       height: 140,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: theme.colorScheme.onSurface.withOpacity(0.05),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.05,
+                        ),
                         image: widget.manager.profilePicturePath != null
                             ? DecorationImage(
                                 image: FileImage(
@@ -1390,7 +1500,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: theme.primaryColor.withOpacity(0.3),
+                            color: theme.primaryColor.withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -1400,8 +1510,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           ? Icon(
                               Icons.person_rounded,
                               size: 60,
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.5,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.5,
                               ),
                             )
                           : null,
@@ -1432,7 +1542,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   borderRadius: BorderRadius.circular(32),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
+                      color: Colors.black.withValues(alpha: 0.02),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -1443,12 +1553,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     _infoField(theme, 'Full Name', _nameController),
                     Divider(
                       height: 32,
-                      color: theme.colorScheme.onSurface.withOpacity(0.05),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
                     ),
                     _infoField(theme, 'Email Address', _emailController),
                     Divider(
                       height: 32,
-                      color: theme.colorScheme.onSurface.withOpacity(0.05),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
                     ),
                     _infoField(theme, 'Phone Number', _phoneController),
                   ],
@@ -1473,7 +1583,7 @@ class _ProfilePageState extends State<ProfilePage> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: theme.colorScheme.onSurface.withOpacity(0.5),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -1567,7 +1677,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       borderRadius: BorderRadius.circular(24),
                     ),
                     elevation: 10,
-                    shadowColor: theme.colorScheme.secondary.withOpacity(0.3),
+                    shadowColor: theme.colorScheme.secondary.withValues(
+                      alpha: 0.3,
+                    ),
                   ),
                   child: Text(
                     _step == 2 ? 'Get Started' : 'Continue',
@@ -1601,7 +1713,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: theme.colorScheme.primary.withOpacity(0.2),
+              color: theme.colorScheme.primary.withValues(alpha: 0.2),
             ),
             child: Image.asset('img/newmascot.png', height: 160),
           ),
@@ -1619,7 +1731,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             'Your premium financial companion.',
             style: TextStyle(
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               fontSize: 16,
             ),
           ),
@@ -1627,7 +1739,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             decoration: BoxDecoration(
-              color: theme.colorScheme.onSurface.withOpacity(0.05),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(24),
             ),
             child: TextField(
@@ -1665,7 +1777,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             'Choose the accounts you use regularly.',
             style: TextStyle(
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               fontSize: 16,
             ),
           ),
@@ -1693,12 +1805,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface.withOpacity(0.03),
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.03),
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: theme.primaryColor.withOpacity(0.4),
+                                color: theme.primaryColor.withValues(
+                                  alpha: 0.4,
+                                ),
                                 blurRadius: 16,
                                 offset: const Offset(0, 8),
                               ),
@@ -1713,7 +1827,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               : Icons.circle_outlined,
                           color: isSelected
                               ? Colors.white
-                              : theme.colorScheme.onSurface.withOpacity(0.3),
+                              : theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.3,
+                                ),
                         ),
                         const SizedBox(width: 16),
                         Text(
@@ -1759,7 +1875,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             'Pick a vibe that suits you best.',
             style: TextStyle(
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               fontSize: 16,
             ),
           ),
@@ -1813,7 +1929,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 16,
               offset: const Offset(0, 8),
             ),
@@ -1846,7 +1962,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     desc,
                     style: TextStyle(
                       fontSize: 14,
-                      color: theme.colorScheme.onSurface.withOpacity(0.5),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -1920,7 +2036,7 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
               width: 48,
               height: 4,
               decoration: BoxDecoration(
-                color: theme.colorScheme.onSurface.withOpacity(0.1),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1952,7 +2068,7 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
               hintText: '0.00',
               prefixStyle: TextStyle(
                 fontSize: 32,
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -1963,7 +2079,7 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 14,
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
           const SizedBox(height: 12),
@@ -1983,7 +2099,7 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withOpacity(0.05),
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -2009,7 +2125,7 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 12),
@@ -2029,7 +2145,7 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? theme.colorScheme.secondary
-                          : theme.colorScheme.onSurface.withOpacity(0.05),
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
@@ -2062,7 +2178,9 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
                   borderRadius: BorderRadius.circular(24),
                 ),
                 elevation: 10,
-                shadowColor: theme.colorScheme.secondary.withOpacity(0.3),
+                shadowColor: theme.colorScheme.secondary.withValues(
+                  alpha: 0.3,
+                ),
               ),
               child: const Text(
                 'Save Log',
@@ -2078,6 +2196,12 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
 
   void _save() {
     final amount = double.tryParse(_amountController.text) ?? 0;
+    if (widget.type == TransactionType.expense && _selectedBankId != null) {
+      if (amount > widget.manager.getBankBalance(_selectedBankId!)) {
+        _showWarning('Insufficient Funds', 'You are spending more than your current balance in this bank.');
+        return;
+      }
+    }
     if (amount > 0 && _selectedBankId != null) {
       final tx = Transaction(
         bankId: _selectedBankId!,
@@ -2091,5 +2215,18 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
       widget.manager.addTransaction(tx);
       Navigator.pop(context);
     }
+  }
+
+  void _showWarning(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+        ],
+      ),
+    );
   }
 }
