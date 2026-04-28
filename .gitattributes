@@ -1,0 +1,16 @@
+* text=auto
+
+# Binary assets — never line-ending convert
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.apk binary
+*.keystore binary
+*.jks binary
