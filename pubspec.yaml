@@ -99,9 +99,10 @@ flutter_launcher_icons:
   web:
     generate: true
     image_path: "img/newmascot.png"
-    background_color: "#FFFFFF"
+    background_color: "#FFD93D"
     theme_color: "#FFD93D"
   image_path: "img/newmascot.png"
-  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_background: "#FFD93D"
   adaptive_icon_foreground: "img/newmascot.png"
+  adaptive_icon_foreground_inset: 16
   min_sdk_android: 21

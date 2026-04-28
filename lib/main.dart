@@ -7,6 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'models/bank.dart';
 import 'models/transaction.dart';
+import 'models/note.dart';
+import 'models/goal.dart';
+import 'models/todo_item.dart';
 import 'logic/transaction_manager.dart';
 
 void main() {
@@ -151,6 +154,7 @@ class _MainNavigationState extends State<MainNavigation> {
     _screens = [
       HomeScreen(manager: widget.manager),
       TransferPage(manager: widget.manager),
+      PlanPage(manager: widget.manager),
       SettingsPage(
         manager: widget.manager,
         onThemeChange: widget.onThemeChange,
@@ -195,6 +199,11 @@ class _MainNavigationState extends State<MainNavigation> {
               icon: Icon(Icons.swap_horiz_outlined),
               activeIcon: Icon(Icons.swap_horiz_rounded),
               label: 'Transfer',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.checklist_outlined),
+              activeIcon: Icon(Icons.checklist_rounded),
+              label: 'Plan',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings_outlined),
@@ -1660,6 +1669,1138 @@ class _ProfilePageState extends State<ProfilePage> {
       ],
     );
   }
+}
+
+// --- PLAN PAGE (Notes / Goals / To-Do) ---
+
+class PlanPage extends StatefulWidget {
+  final TransactionManager manager;
+  const PlanPage({super.key, required this.manager});
+
+  @override
+  State<PlanPage> createState() => _PlanPageState();
+}
+
+class _PlanPageState extends State<PlanPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Plan',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      color: theme.colorScheme.onSurface,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  indicator: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  labelColor: theme.colorScheme.onSurface,
+                  unselectedLabelColor: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                  unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  tabs: const [
+                    Tab(text: 'Notes'),
+                    Tab(text: 'Goals'),
+                    Tab(text: 'To-Do'),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _NotesTab(manager: widget.manager, onChange: _refresh),
+                  _GoalsTab(manager: widget.manager, onChange: _refresh),
+                  _TodosTab(manager: widget.manager, onChange: _refresh),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.secondary,
+        elevation: 8,
+        onPressed: () {
+          switch (_tabController.index) {
+            case 0:
+              _showNoteEditor(context, widget.manager, null, _refresh);
+              break;
+            case 1:
+              _showGoalEditor(context, widget.manager, null, _refresh);
+              break;
+            case 2:
+              _showTodoEditor(context, widget.manager, null, _refresh);
+              break;
+          }
+        },
+        child: const Icon(Icons.add_rounded, size: 28),
+      ),
+    );
+  }
+}
+
+// --- NOTES TAB ---
+
+class _NotesTab extends StatelessWidget {
+  final TransactionManager manager;
+  final VoidCallback onChange;
+  const _NotesTab({required this.manager, required this.onChange});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final notes = manager.notes;
+
+    if (notes.isEmpty) {
+      return _emptyState(
+        theme,
+        Icons.sticky_note_2_outlined,
+        'No notes yet',
+        'Tap + to write your first note',
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
+      physics: const BouncingScrollPhysics(),
+      itemCount: notes.length,
+      itemBuilder: (context, index) {
+        final note = notes[index];
+        return Dismissible(
+          key: Key(note.id),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 24),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.redAccent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(Icons.delete_rounded, color: Colors.white),
+          ),
+          onDismissed: (_) async {
+            await manager.deleteNote(note.id);
+            onChange();
+          },
+          child: GestureDetector(
+            onTap: () => _showNoteEditor(context, manager, note, onChange),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    note.title.isEmpty ? '(untitled)' : note.title,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  if (note.body.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      note.body,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Text(
+                    _formatDate(note.updatedAt),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+void _showNoteEditor(BuildContext context, TransactionManager manager, Note? existing, VoidCallback onChange) {
+  final titleCtrl = TextEditingController(text: existing?.title ?? '');
+  final bodyCtrl = TextEditingController(text: existing?.body ?? '');
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) {
+      final theme = Theme.of(ctx);
+      final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
+      return Container(
+        height: MediaQuery.of(ctx).size.height * 0.85,
+        padding: EdgeInsets.fromLTRB(24, 24, 24, bottomInset + 24),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            TextField(
+              controller: titleCtrl,
+              autofocus: existing == null,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: theme.colorScheme.onSurface,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Title',
+                border: InputBorder.none,
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: TextField(
+                controller: bodyCtrl,
+                maxLines: null,
+                expands: true,
+                textAlignVertical: TextAlignVertical.top,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
+                  height: 1.5,
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Write something...',
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: () async {
+                  final title = titleCtrl.text.trim();
+                  final body = bodyCtrl.text.trim();
+                  if (title.isEmpty && body.isEmpty) {
+                    Navigator.pop(ctx);
+                    return;
+                  }
+                  if (existing == null) {
+                    await manager.addNote(Note(title: title, body: body));
+                  } else {
+                    await manager.updateNote(existing.id, title: title, body: body);
+                  }
+                  onChange();
+                  if (ctx.mounted) Navigator.pop(ctx);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.secondary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+                child: Text(
+                  existing == null ? 'Save Note' : 'Update Note',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+// --- GOALS TAB ---
+
+class _GoalsTab extends StatelessWidget {
+  final TransactionManager manager;
+  final VoidCallback onChange;
+  const _GoalsTab({required this.manager, required this.onChange});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final goals = manager.goals;
+
+    if (goals.isEmpty) {
+      return _emptyState(
+        theme,
+        Icons.flag_outlined,
+        'No goals yet',
+        'Tap + to set your first savings goal',
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
+      physics: const BouncingScrollPhysics(),
+      itemCount: goals.length,
+      itemBuilder: (context, index) {
+        final goal = goals[index];
+        return Dismissible(
+          key: Key(goal.id),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 24),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.redAccent,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: const Icon(Icons.delete_rounded, color: Colors.white),
+          ),
+          onDismissed: (_) async {
+            await manager.deleteGoal(goal.id);
+            onChange();
+          },
+          child: GestureDetector(
+            onTap: () => _showGoalEditor(context, manager, goal, onChange),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          goal.title,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      if (goal.isComplete)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text(
+                            'Reached',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.green,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '₱${goal.savedAmount.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        'of ₱${goal.targetAmount.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: goal.progress,
+                      minHeight: 10,
+                      backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                      valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
+                    ),
+                  ),
+                  if (goal.deadline != null) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          size: 12,
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _formatDeadline(goal.deadline!),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+void _showGoalEditor(BuildContext context, TransactionManager manager, Goal? existing, VoidCallback onChange) {
+  final titleCtrl = TextEditingController(text: existing?.title ?? '');
+  final targetCtrl = TextEditingController(text: existing?.targetAmount.toStringAsFixed(0) ?? '');
+  final savedCtrl = TextEditingController(text: existing?.savedAmount.toStringAsFixed(0) ?? '0');
+  final addCtrl = TextEditingController();
+  DateTime? deadline = existing?.deadline;
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) {
+      return StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          final theme = Theme.of(ctx);
+          final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
+          return Container(
+            padding: EdgeInsets.fromLTRB(24, 24, 24, bottomInset + 24),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  existing == null ? 'New Goal' : 'Edit Goal',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _planFieldLabel(theme, 'Title'),
+                _planTextField(theme, titleCtrl, 'e.g. New laptop'),
+                const SizedBox(height: 16),
+                _planFieldLabel(theme, 'Target Amount (₱)'),
+                _planTextField(theme, targetCtrl, '50000', isNumber: true),
+                const SizedBox(height: 16),
+                if (existing != null) ...[
+                  _planFieldLabel(theme, 'Add to savings (₱)'),
+                  Row(
+                    children: [
+                      Expanded(child: _planTextField(theme, addCtrl, '0', isNumber: true)),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () async {
+                          final amt = double.tryParse(addCtrl.text);
+                          if (amt != null && amt > 0) {
+                            await manager.contributeToGoal(existing.id, amt);
+                            addCtrl.clear();
+                            savedCtrl.text = manager.goals.firstWhere((g) => g.id == existing.id).savedAmount.toStringAsFixed(0);
+                            setSheetState(() {});
+                            onChange();
+                          }
+                        },
+                        child: Container(
+                          height: 56,
+                          width: 56,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(Icons.add_rounded, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _planFieldLabel(theme, 'Saved (₱) — adjust manually'),
+                  _planTextField(theme, savedCtrl, '0', isNumber: true),
+                  const SizedBox(height: 16),
+                ],
+                _planFieldLabel(theme, 'Deadline (optional)'),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: ctx,
+                            initialDate: deadline ?? DateTime.now().add(const Duration(days: 30)),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+                          );
+                          if (picked != null) {
+                            setSheetState(() => deadline = picked);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_today_rounded, size: 16, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                              const SizedBox(width: 8),
+                              Text(
+                                deadline == null ? 'No deadline' : _formatDeadline(deadline!),
+                                style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (deadline != null) ...[
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => setSheetState(() => deadline = null),
+                        child: Container(
+                          height: 52,
+                          width: 52,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(Icons.close_rounded, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final title = titleCtrl.text.trim();
+                      final target = double.tryParse(targetCtrl.text);
+                      final saved = double.tryParse(savedCtrl.text) ?? 0;
+                      if (title.isEmpty || target == null || target <= 0) return;
+                      if (existing == null) {
+                        await manager.addGoal(Goal(
+                          title: title,
+                          targetAmount: target,
+                          savedAmount: saved,
+                          deadline: deadline,
+                        ));
+                      } else {
+                        await manager.updateGoal(
+                          existing.id,
+                          title: title,
+                          targetAmount: target,
+                          savedAmount: saved,
+                          deadline: deadline,
+                          clearDeadline: deadline == null,
+                        );
+                      }
+                      onChange();
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.secondary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                    child: Text(
+                      existing == null ? 'Save Goal' : 'Update Goal',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+// --- TODOS TAB ---
+
+class _TodosTab extends StatelessWidget {
+  final TransactionManager manager;
+  final VoidCallback onChange;
+  const _TodosTab({required this.manager, required this.onChange});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final todos = manager.todos;
+
+    if (todos.isEmpty) {
+      return _emptyState(
+        theme,
+        Icons.task_alt_rounded,
+        'No to-dos yet',
+        'Tap + to add a spending plan',
+      );
+    }
+
+    final pending = todos.where((t) => !t.completed).toList();
+    final done = todos.where((t) => t.completed).toList();
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
+      physics: const BouncingScrollPhysics(),
+      children: [
+        ...pending.map((t) => _todoTile(context, t, theme)),
+        if (done.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8, left: 4),
+            child: Text(
+              'Completed',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          ...done.map((t) => _todoTile(context, t, theme)),
+        ],
+      ],
+    );
+  }
+
+  Widget _todoTile(BuildContext context, TodoItem todo, ThemeData theme) {
+    final bank = Bank.phBanks.firstWhere(
+      (b) => b.id == todo.bankId,
+      orElse: () => Bank(id: todo.bankId, name: todo.bankId.toUpperCase(), type: BankType.traditional),
+    );
+    final balance = manager.getBankBalance(todo.bankId);
+    final canAfford = balance >= todo.cost;
+
+    return Dismissible(
+      key: Key(todo.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.redAccent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Icon(Icons.delete_rounded, color: Colors.white),
+      ),
+      onDismissed: (_) async {
+        await manager.deleteTodo(todo.id);
+        onChange();
+      },
+      child: GestureDetector(
+        onTap: () {
+          if (todo.completed) return;
+          _showTodoEditor(context, manager, todo, onChange);
+        },
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: () async {
+                  if (todo.completed) {
+                    await manager.uncompleteTodo(todo.id);
+                    onChange();
+                  } else {
+                    final ok = await manager.completeTodo(todo.id);
+                    if (!ok) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Not enough balance in ${bank.name}'),
+                            behavior: SnackBarBehavior.floating,
+                            shape: const StadiumBorder(),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                      }
+                    } else {
+                      onChange();
+                    }
+                  }
+                },
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: todo.completed
+                        ? theme.colorScheme.primary
+                        : Colors.transparent,
+                    border: Border.all(
+                      color: todo.completed
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: todo.completed
+                      ? const Icon(Icons.check_rounded, size: 18, color: Colors.white)
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      todo.title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.onSurface,
+                        decoration: todo.completed ? TextDecoration.lineThrough : null,
+                        decorationColor: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text(
+                          bank.name,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        if (!todo.completed && !canAfford) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'short',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '₱${todo.cost.toStringAsFixed(0)}',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: todo.completed
+                      ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
+                      : theme.colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void _showTodoEditor(BuildContext context, TransactionManager manager, TodoItem? existing, VoidCallback onChange) {
+  if (manager.userBankIds.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Add a bank first in onboarding/settings'),
+        behavior: SnackBarBehavior.floating,
+        shape: StadiumBorder(),
+      ),
+    );
+    return;
+  }
+
+  final titleCtrl = TextEditingController(text: existing?.title ?? '');
+  final costCtrl = TextEditingController(text: existing?.cost.toStringAsFixed(0) ?? '');
+  String bankId = existing?.bankId ?? manager.userBankIds.first;
+  if (!manager.userBankIds.contains(bankId)) bankId = manager.userBankIds.first;
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) {
+      return StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          final theme = Theme.of(ctx);
+          final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
+          return Container(
+            padding: EdgeInsets.fromLTRB(24, 24, 24, bottomInset + 24),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  existing == null ? 'New To-Do' : 'Edit To-Do',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _planFieldLabel(theme, 'What for?'),
+                _planTextField(theme, titleCtrl, 'e.g. Pay GCash bill'),
+                const SizedBox(height: 16),
+                _planFieldLabel(theme, 'Cost (₱)'),
+                _planTextField(theme, costCtrl, '500', isNumber: true),
+                const SizedBox(height: 16),
+                _planFieldLabel(theme, 'Source bank'),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: bankId,
+                      isExpanded: true,
+                      icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.colorScheme.onSurface),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      dropdownColor: theme.cardColor,
+                      items: manager.userBankIds.map((id) {
+                        final bank = Bank.phBanks.firstWhere(
+                          (b) => b.id == id,
+                          orElse: () => Bank(id: id, name: id.toUpperCase(), type: BankType.traditional),
+                        );
+                        final balance = manager.getBankBalance(id);
+                        return DropdownMenuItem(
+                          value: id,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Flexible(child: Text(bank.name, overflow: TextOverflow.ellipsis)),
+                                Text(
+                                  '₱${balance.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (v) {
+                        if (v != null) setSheetState(() => bankId = v);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final title = titleCtrl.text.trim();
+                      final cost = double.tryParse(costCtrl.text);
+                      if (title.isEmpty || cost == null || cost <= 0) return;
+                      if (existing == null) {
+                        await manager.addTodo(TodoItem(
+                          title: title,
+                          cost: cost,
+                          bankId: bankId,
+                        ));
+                      } else {
+                        await manager.updateTodo(existing.id, title: title, cost: cost, bankId: bankId);
+                      }
+                      onChange();
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.secondary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                    child: Text(
+                      existing == null ? 'Save To-Do' : 'Update To-Do',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+// --- PLAN HELPERS ---
+
+Widget _emptyState(ThemeData theme, IconData icon, String title, String subtitle) {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+          ),
+          child: Icon(icon, size: 48, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 14,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _planFieldLabel(ThemeData theme, String label) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 8, left: 4),
+    child: Text(
+      label,
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+        letterSpacing: 0.3,
+      ),
+    ),
+  );
+}
+
+Widget _planTextField(ThemeData theme, TextEditingController controller, String hint, {bool isNumber = false}) {
+  return TextField(
+    controller: controller,
+    keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+    style: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+      color: theme.colorScheme.onSurface,
+    ),
+    decoration: InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+    ),
+  );
+}
+
+String _formatDate(DateTime date) {
+  final now = DateTime.now();
+  final diff = now.difference(date);
+  if (diff.inDays == 0) {
+    if (diff.inHours == 0) {
+      return diff.inMinutes <= 1 ? 'just now' : '${diff.inMinutes}m ago';
+    }
+    return '${diff.inHours}h ago';
+  }
+  if (diff.inDays == 1) return 'yesterday';
+  if (diff.inDays < 7) return '${diff.inDays}d ago';
+  return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+}
+
+String _formatDeadline(DateTime date) {
+  final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  final daysLeft = date.difference(DateTime.now()).inDays;
+  final formatted = '${months[date.month - 1]} ${date.day}, ${date.year}';
+  if (daysLeft < 0) return '$formatted (overdue)';
+  if (daysLeft == 0) return '$formatted (today)';
+  if (daysLeft <= 30) return '$formatted ($daysLeft days left)';
+  return formatted;
 }
 
 // --- ONBOARDING ---
