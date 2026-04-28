@@ -16,6 +16,9 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
+  // Use bundled font files; never reach out to the network at runtime.
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   runApp(
     DevicePreview(
       enabled:
