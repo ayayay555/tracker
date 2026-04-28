@@ -3,7 +3,7 @@
     "short_name": "Curl",
     "start_url": "/tracker/",
     "display": "standalone",
-    "background_color": "#FFFFFF",
+    "background_color": "#FFD93D",
     "theme_color": "#FFD93D",
     "description": "Minimalistic Financial Tracker (PH Edition)",
     "orientation": "portrait-primary",
