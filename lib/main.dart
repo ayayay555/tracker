@@ -14,7 +14,16 @@ import 'logic/transaction_manager.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+  // Edge-to-edge: app draws behind system bars, but back/home/recents
+  // remain visible and tappable. Status + nav bars get transparent
+  // backgrounds so the app's color flows under them seamlessly.
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarDividerColor: Colors.transparent,
+  ));
 
   // Use bundled font files; never reach out to the network at runtime.
   GoogleFonts.config.allowRuntimeFetching = false;
