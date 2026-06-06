@@ -34,6 +34,51 @@
 </head>
 <body>
   <!--
+    Auto-update the PWA. Flutter's default service worker is "offline-first":
+    a freshly deployed build installs but sits in the "waiting" state until
+    every running instance of the app is closed, so an installed PWA keeps
+    showing the old version until you kill it (often twice). This script asks
+    any waiting/installed worker to activate immediately, then reloads once it
+    takes control — so a new deploy applies on the next launch with no
+    uninstall/reinstall.
+  -->
+  <script>
+    (function () {
+      if (!('serviceWorker' in navigator)) return;
+
+      var refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+
+      function activate(worker) {
+        if (worker) worker.postMessage('skipWaiting');
+      }
+
+      navigator.serviceWorker.ready.then(function (reg) {
+        // A new build already finished downloading on a previous visit.
+        if (reg.waiting) activate(reg.waiting);
+
+        reg.addEventListener('updatefound', function () {
+          var installing = reg.installing;
+          if (!installing) return;
+          installing.addEventListener('statechange', function () {
+            if (installing.state === 'installed' &&
+                navigator.serviceWorker.controller) {
+              activate(installing);
+            }
+          });
+        });
+
+        // Check for a newer build on every launch.
+        reg.update();
+      });
+    })();
+  </script>
+
+  <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader
     or to give the user feedback during the initialization process.
