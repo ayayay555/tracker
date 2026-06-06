@@ -558,10 +558,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: LinearProgressIndicator(
-                            value:
-                                (widget.manager.getTotalMonthlyExpenses() /
-                                        widget.manager.monthlyBudget)
-                                    .clamp(0.0, 1.0),
+                            value: widget.manager.monthlyBudget > 0
+                                ? (widget.manager.getTotalMonthlyExpenses() /
+                                          widget.manager.monthlyBudget)
+                                      .clamp(0.0, 1.0)
+                                : 0.0,
                             minHeight: 10,
                             backgroundColor: theme.colorScheme.onSurface
                                 .withValues(alpha: 0.05),
@@ -807,11 +808,73 @@ class _BudgetPlannerSheetState extends State<BudgetPlannerSheet> {
   late List<Map<String, dynamic>> _items;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _budgetController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _items = List.from(widget.manager.budgetItems);
+    _budgetController.text = widget.manager.monthlyBudget.toStringAsFixed(0);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _amountController.dispose();
+    _budgetController.dispose();
+    super.dispose();
+  }
+
+  void _confirmReset() {
+    final theme = Theme.of(context);
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: theme.cardColor,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          'Reset Budget',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        content: Text(
+          'This deletes all budget items and clears the monthly total. This cannot be undone.',
+          style: TextStyle(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _items.clear();
+                _budgetController.text = '0';
+              });
+              Navigator.pop(dialogContext);
+            },
+            child: const Text(
+              'Reset',
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -840,12 +903,62 @@ class _BudgetPlannerSheetState extends State<BudgetPlannerSheet> {
             ),
           ),
           const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Budget Planner',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              TextButton.icon(
+                onPressed: _confirmReset,
+                icon: const Icon(
+                  Icons.refresh_rounded,
+                  size: 18,
+                  color: Colors.redAccent,
+                ),
+                label: const Text(
+                  'Reset',
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Editable monthly total
           Text(
-            'Budget Planner',
+            'Monthly Total',
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _budgetController,
+            keyboardType: TextInputType.number,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
               color: theme.colorScheme.onSurface,
+            ),
+            decoration: InputDecoration(
+              prefixText: '₱ ',
+              filled: true,
+              fillColor: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -980,6 +1093,9 @@ class _BudgetPlannerSheetState extends State<BudgetPlannerSheet> {
             child: ElevatedButton(
               onPressed: () {
                 widget.manager.updateBudgetItems(_items);
+                widget.manager.updateBudget(
+                  double.tryParse(_budgetController.text) ?? 0,
+                );
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
@@ -3201,17 +3317,8 @@ class TransactionInputSheet extends StatefulWidget {
 
 class _TransactionInputSheetState extends State<TransactionInputSheet> {
   final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
   String? _selectedBankId;
-  String _selectedCategory = 'Food';
-  final List<String> _categories = [
-    'Food',
-    'Transport',
-    'Bills',
-    'Shopping',
-    'Others',
-    'Salary',
-    'Gift',
-  ];
 
   @override
   void initState() {
@@ -3219,6 +3326,13 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
     if (widget.manager.userBankIds.isNotEmpty) {
       _selectedBankId = widget.manager.userBankIds.first;
     }
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _descController.dispose();
+    super.dispose();
   }
 
   @override
@@ -3333,7 +3447,7 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
 
           if (widget.type == TransactionType.expense) ...[
             Text(
-              'Category',
+              'Description',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
@@ -3341,39 +3455,29 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
               ),
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: _categories.map((cat) {
-                final isSelected = _selectedCategory == cat;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedCategory = cat),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? theme.colorScheme.secondary
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      cat,
-                      style: TextStyle(
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.w600,
-                        color: isSelected
-                            ? Colors.white
-                            : theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+            TextField(
+              controller: _descController,
+              textCapitalization: TextCapitalization.sentences,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface,
+              ),
+              decoration: InputDecoration(
+                hintText: 'What was this expense for?',
+                hintStyle: TextStyle(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                ),
+                filled: true,
+                fillColor: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
             ),
           ],
           const SizedBox(height: 48),
@@ -3420,9 +3524,14 @@ class _TransactionInputSheetState extends State<TransactionInputSheet> {
         amount: amount,
         category: widget.type == TransactionType.income
             ? 'Deposit'
-            : _selectedCategory,
+            : (_descController.text.trim().isEmpty
+                  ? 'Expense'
+                  : _descController.text.trim()),
         type: widget.type,
         date: DateTime.now(),
+        note: _descController.text.trim().isEmpty
+            ? null
+            : _descController.text.trim(),
       );
       widget.manager.addTransaction(tx);
       Navigator.pop(context);
