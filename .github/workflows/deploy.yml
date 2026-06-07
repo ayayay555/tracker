@@ -21,7 +21,18 @@ jobs:
           
       - name: Build Web
         run: flutter build web --base-href "/tracker/"
-        
+
+      - name: Cache-bust assets
+        # Flutter always names the compiled output "main.dart.js", so browsers
+        # (and installed PWAs) keep serving the previous build from that same
+        # URL forever. Stamp the commit SHA onto the asset URLs so every deploy
+        # produces brand-new URLs the cache has never seen, forcing a refresh.
+        run: |
+          VERSION="${GITHUB_SHA::8}"
+          sed -i "s|\"main\.dart\.js\"|\"main.dart.js?v=${VERSION}\"|g" build/web/flutter_bootstrap.js
+          sed -i "s|src=\"flutter_bootstrap\.js\"|src=\"flutter_bootstrap.js?v=${VERSION}\"|g" build/web/index.html
+          echo "Cache-busted assets with version ${VERSION}"
+
       - name: Add .nojekyll
         run: touch build/web/.nojekyll
         
