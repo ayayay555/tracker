@@ -31,11 +31,21 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Permanent release key (committed). A FIXED signature means every new
+        // APK is recognised by Android as an update to the installed app, so
+        // user data is preserved across updates instead of forcing a reinstall.
+        create("release") {
+            storeFile = file("curl-release.jks")
+            storePassword = "curlapp123"
+            keyAlias = "curl"
+            keyPassword = "curlapp123"
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

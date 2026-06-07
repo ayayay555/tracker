@@ -6,6 +6,9 @@ on:
       - master
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -30,9 +33,24 @@ jobs:
       - name: Build release APK
         run: flutter build apk --release
 
+      - name: Rename APK
+        run: cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/curl.apk
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: curl-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/curl.apk
           retention-days: 30
+
+      - name: Publish APK to Releases
+        # Attaches the signed APK to a stable "latest" release so it can be
+        # installed directly on a phone via:
+        #   https://github.com/ayayay555/tracker/releases/latest/download/curl.apk
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest Curl APK
+          make_latest: true
+          files: build/app/outputs/flutter-apk/curl.apk
+          fail_on_unmatched_files: true
