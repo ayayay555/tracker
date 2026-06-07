@@ -12,7 +12,6 @@ class TransactionManager {
   List<String> _userBankIds = [];
   double monthlyBudget = 20000.0;
   List<Map<String, dynamic>> budgetItems = [];
-  Map<String, double> categoryBudgets = {};
 
   List<Note> _notes = [];
   List<Goal> _goals = [];
@@ -31,7 +30,6 @@ class TransactionManager {
   static const String _banksKey = 'curl_user_banks';
   static const String _budgetKey = 'curl_budget';
   static const String _budgetItemsKey = 'curl_budget_items';
-  static const String _catBudgetKey = 'curl_cat_budgets';
 
   static const String _notesKey = 'curl_notes';
   static const String _goalsKey = 'curl_goals';
@@ -68,11 +66,6 @@ class TransactionManager {
     final String? itemsData = prefs.getString(_budgetItemsKey);
     if (itemsData != null) {
       budgetItems = List<Map<String, dynamic>>.from(jsonDecode(itemsData));
-    }
-
-    final String? catData = prefs.getString(_catBudgetKey);
-    if (catData != null) {
-      categoryBudgets = Map<String, double>.from(jsonDecode(catData));
     }
 
     // Load Notes
@@ -119,12 +112,6 @@ class TransactionManager {
     await prefs.setString(_budgetItemsKey, jsonEncode(items));
   }
 
-  Future<void> updateCategoryBudget(String category, double amount) async {
-    categoryBudgets[category] = amount;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_catBudgetKey, jsonEncode(categoryBudgets));
-  }
-
   Future<void> setUserProfile({required String name, String? mail, String? phone, String? pic}) async {
     username = name;
     if (mail != null) email = mail;
@@ -154,13 +141,6 @@ class TransactionManager {
     saveUserBanks();
   }
 
-  void addCustomBank(String id) {
-    if (!_userBankIds.contains(id)) {
-      _userBankIds.add(id);
-      saveUserBanks();
-    }
-  }
-
   Future<void> saveTransactions() async {
     final prefs = await SharedPreferences.getInstance();
     final String encoded = jsonEncode(_transactions.map((tx) => tx.toJson()).toList());
@@ -177,10 +157,6 @@ class TransactionManager {
     await saveTransactions();
   }
 
-  List<Transaction> getTransactionsByBank(String bankId) {
-    return _transactions.where((tx) => tx.bankId == bankId || tx.targetBankId == bankId).toList();
-  }
-
   double getBankBalance(String bankId) {
     double balance = 0;
     for (final tx in _transactions) {
@@ -194,14 +170,6 @@ class TransactionManager {
       }
     }
     return balance;
-  }
-
-  Map<String, double> getExpensesByCategory() {
-    final Map<String, double> categories = {};
-    for (final tx in _transactions.where((t) => t.type == TransactionType.expense)) {
-      categories[tx.category] = (categories[tx.category] ?? 0) + tx.amount;
-    }
-    return categories;
   }
 
   double getTotalBalance() {
@@ -220,12 +188,6 @@ class TransactionManager {
             tx.date.month == now.month &&
             tx.date.year == now.year)
         .fold(0.0, (sum, tx) => sum + tx.amount);
-  }
-
-  List<MapEntry<String, double>> getTopSpendCategories({int limit = 5}) {
-    final categories = getExpensesByCategory().entries.toList();
-    categories.sort((a, b) => b.value.compareTo(a.value));
-    return categories.take(limit).toList();
   }
 
   // ---------- NOTES ----------
